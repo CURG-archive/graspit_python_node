@@ -1,7 +1,10 @@
-"""@package
-middle-ware package to communicate with graspit and convert it to ros message
-"""
-import roslib; roslib.load_manifest( "graspit_python_node" )
+#!/usr/bin/env python
+'''
+@package middle-ware package to communicate with graspit and convert it to ros message
+'''
+
+import roslib
+roslib.load_manifest( "graspit_python_node" )
 import rospy
 import asyncore
 import socket, time
@@ -69,20 +72,36 @@ def parse_db_grasp_string(grasp_string):
     full_structured_grasp_list = [graspit_barret_grasp(structured_grasp_list[ind], structured_grasp_list[ind+1]) for x in range(0,len(pregrasp_grasp_list),2)]  
     return full_structured_grasp_list
 
-def parse_graspstate_grasp_string(grasp_string):
-    grasp_string = grasp_string.strip('\n')
-    if grasp_string[0] != '{' or grasp_string[-1] != '}':
-        raise Exception('bad_grasp_string','improper terminator')
-    cleaned_string = grasp_string.strip('{').strip('}')
-    grasp_list = cleaned_string.split(',')
-
-    def parse_grasp_list(gs):
-        split_str = transform_string.split(')')
-        starting_str = split_str[0]
+        
+def parse_unstructured_grasp_string(grasp_string):
+    #clean the string from extraneous characters
+    gs = grasp_string.strip('{').strip('}').strip('\n')
+    #split into unstructured list
+    gs_list = gs.split(' ')
+    #extract grasp fields
+    quat_list = gs_list[0:4]
+    tran_list = gs_list[4:7]
+    
+    dof_list = gs_list[7:11]
+    epsilon_quality = gs_list[11]
+    volume_quality = gs_list[12]
+    quality_list = []
+    if len(gs_list) > 13:
+        quality_list = gs_list[13:-1]
+    
+    q = geometry_msgs.msg.Quaternion(w = quat_list[0], x = quat_list[1], y = quat_list[2], z = quat_list[3])
+    p = geometry_msgs.msg.Point(x = tran_list[0], y = tran_list[1], z = tran_list[2])
+    grasp_pose_msg = geometry_msgs.msg.Pose(orientation = q, position = p)
+    g = graspit_msgs.msg.Grasp(epsilon_quality = epsilon_quality, pre_grasp_pose = grasp_pose_msg, final_grasp_pose = grasp_pose_msg, pre_grasp_dof = dof_list, final_grasp_dof = dof_list, secondary_qualities = quality_list)
+    return g
         
     
     
 class GraspitExecutionListener(asyncore.dispatcher_with_send):
+    def __init__(self, hostname):
+        asyncore.dispatcher_with_send.__init__(self, hostname)
+        self.grasp_pub = rospy.Publisher('/graspit_python_server/grasps', graspit_msgs.msg)
+        
     def handle_connect(self, address):
         print 'connected'
 
@@ -90,12 +109,15 @@ class GraspitExecutionListener(asyncore.dispatcher_with_send):
         self.close()       
 
     def handle_read(self):
-        return parse_grasp_string(self.recv(4096))
+        grasp_msg = parse_unstructured_grasp_string(self.recv(4096))
+        self.grasp_pub.publish(grasp_msgs)
+        print 'translated grasp'
+        
     
             
 
 
-class GraspitCommunicator(asyncore.dispatcher):
+class GraspitCommunicator(asyncore.dispatcher_with_send):
     """
     An object that encapsulates the communication with GraspIt!
 
@@ -103,25 +125,39 @@ class GraspitCommunicator(asyncore.dispatcher):
     @param hostname - URL or ip to computer running GraspIt!
     @param port_number - The port number that the GraspIt! server is listening on.
     """
-    def __init__(self, hostname = 'tonga.cs.columbia.edu',port_number = 4567):
+    def __init__(self, hostname = 'tonga.cs.columbia.edu',port_number = 4765):
         asyncore.dispatcher.__init__(self)
-        self.port = port
+        #s.connect((hostname, port_number))
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.set_reuse_addr()
-        self.bind((hostname, port))
-        self.listen(5)
+        self.connect((hostname, port_number))
+        self.out_buffer = ""
+        
+#        self.listen(5)
 
     
-    def handle_connect(self, address):
-        pass
+    def handle_connect(self):        
+
+        print 'connected'
     
     def handle_accept(self):
         sock, addr = self.accept()
-        h = GraspExecutionListner(sock)
+        h = GraspExecutionListener(sock)
+
+    def handle_read(self):
+        print 'in main server read\n'
 
 
-
+if __name__ == '__main__':
+    try:
+        g = GraspitCommunicator()
+        g.send('connectToWorldPlanner \n')
+        asyncore.loop()
+    except rospy.ROSInterruptException: pass
     
+            
+
+
 
 
                         
