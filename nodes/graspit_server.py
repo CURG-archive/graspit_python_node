@@ -60,9 +60,7 @@ class graspit_barrett_grasp(object):
                   volume_quality = self.final_grasp.quality_scores[1],
                   secondary_qualities = self.final_grasp.quality_scores[2:]
             )
-    
-                                      
-            
+                                          
                                       
 
 def parse_db_grasp_string(grasp_string):
@@ -108,23 +106,46 @@ def parse_unstructured_grasp_string(grasp_string):
 
 class GraspitExecutionListener( object ):
     def __init__(self, hostname):
-        self.socket = socket.socket()
-        self.socket.connect(hostname)        
+        self.socket = []
+        self.graspit_commander = []        
+        self.hostname = hostname
+        while not self.try_reconnect():
+            print "initial connection failed. Reconnecting \n"
         self.grasp_pub = rospy.Publisher('/graspit/grasps', graspit_msgs.msg.Grasp)
         self.target_pub = rospy.Publisher('/graspit/target_name', std_msgs.msg.String)
-        self.graspit_commander = graspitManager(self.socket)
-        self.graspit_commander.connect_world_planner()
         self.transform_listener = tf.TransformListener()
         self.error_error_subscriber = rospy.Subscriber("/graspit/status", graspit_msgs.msg.GraspStatus, self.send_error)
 
+    def try_reconnect(self):
+        try:
+            s = socket.socket()
+            s.settimeout(2)
+            s.connect(self.hostname)
+            self.socket = s
+            self.graspit_commander = graspitManager(self.socket)
+            self.graspit_commander.connect_world_planner()
+            return True
+        except:
+            return False
+        
+        
+        
     def send_error(self, msg):
         self.graspit_commander.send_grasp_failed(0, msg.grasp_status, msg.status_msg)
         
     def try_read(self):
+        received_string = ""
         try:
             received_string = self.socket.recv(4096)
-        except:
+        except Exception as e:
+            if isinstance(e, socket.timeout):
+                return [],[]
+        if received_string == "":
+            print "trying to reconnect"
+            self.socket = []
+            self.try_reconnect()
             return [],[]
+        
         #try:
         grasp_msg = parse_unstructured_grasp_string(received_string)
         final_grasp_pose = self.graspit_commander.get_current_hand_pose_msg()
@@ -135,6 +156,8 @@ class GraspitExecutionListener( object ):
         #except Exception as e:
         #    print e
         return received_string, grasp_msg
+
+
 
     def update_table(self):
         try:
@@ -152,12 +175,12 @@ if __name__ == '__main__':
      try:
          rospy.init_node('graspit_python_server')
          g = GraspitExecutionListener(('128.59.17.206',4765))
-         #g = GraspitExecutionListener(('tonga.cs.columbia.edu',4765))
+#         g = GraspitExecutionListener(('tonga.cs.columbia.edu',4765))
          g.graspit_commander.get_graspit_objects()
-         table_ind = g.graspit_commander.object_ind('experiment_table')
-         if not table_ind:
+#         table_ind = g.graspit_commander.object_ind('experiment_table')
+#         if not table_ind:
 #             g.graspit_commander.add_object('experiment_table')            
-             g.graspit_commander.add_obstacle('experiment_table')            
+#             g.graspit_commander.add_obstacle('experiment_table')            
          loop = rospy.Rate(10)
          while not rospy.is_shutdown():
              s,grasp_msg = g.try_read()
