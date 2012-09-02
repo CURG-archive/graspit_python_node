@@ -150,11 +150,6 @@ class graspitManager():
         transf = self.transform_string_to_transform(transform_string)
         return transf
                
-    def get_planner_target_name(self):
-        self.socket.send('getPlannerTarget \n')
-        target_name = self.socket.recv(300).rstrip('\n')        
-        return target_name
-
     def get_current_hand_pose_msg(self):
         tran = self.get_current_hand_tran()
         return toMsg(fromMatrix(tran))

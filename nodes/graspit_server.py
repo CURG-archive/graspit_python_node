@@ -113,6 +113,7 @@ class GraspitExecutionListener( object ):
             print "initial connection failed. Reconnecting \n"
         self.grasp_pub = rospy.Publisher('/graspit/grasps', graspit_msgs.msg.Grasp)
         self.target_pub = rospy.Publisher('/graspit/target_name', std_msgs.msg.String)
+        self.object_recognition_pub = rospy.Publisher('/graspit/refresh_models', std_msgs.msg.Empty)
         self.transform_listener = tf.TransformListener()
         self.error_error_subscriber = rospy.Subscriber("/graspit/status", graspit_msgs.msg.GraspStatus, self.send_error)
 
@@ -128,10 +129,22 @@ class GraspitExecutionListener( object ):
         except:
             return False
         
-        
+    def run_object_recognition(self):
+        self.object_recognition_pub.publish()
         
     def send_error(self, msg):
         self.graspit_commander.send_grasp_failed(0, msg.grasp_status, msg.status_msg)
+
+    def parse_grasp_string(self, grasp_string):
+        """Parse string returned to graspit in to grasp message
+        FIXME
+        This and all of it's helper functions should move in to graspit_commands.py
+
+        """
+        grasp_msg = parse_unstructured_grasp_string(grasp_string)
+        final_grasp_pose = self.graspit_commander.get_current_hand_pose_msg()
+        grasp_msg[0].final_grasp_pose = final_grasp_pose
+        return grasp_msg
         
     def try_read(self):
         received_string = ""
@@ -145,11 +158,14 @@ class GraspitExecutionListener( object ):
             self.socket = []
             self.try_reconnect()
             return [],[]
+
+        if recieved_string.split(' ')[0] == "runObjectRecognition":
+            self.run_object_recognition()
+            return [], "runObjectRecogntion"
         
         #try:
-        grasp_msg = parse_unstructured_grasp_string(received_string)
-        final_grasp_pose = self.graspit_commander.get_current_hand_pose_msg()
-        grasp_msg[0].final_grasp_pose = final_grasp_pose
+
+        grasp_msg = self.parse_grasp_string(received_string)
         target_name = self.graspit_commander.get_planner_target_name()
         self.target_pub.publish(target_name)
         self.grasp_pub.publish(grasp_msg[0])
@@ -174,7 +190,7 @@ class GraspitExecutionListener( object ):
 if __name__ == '__main__':
      try:
          rospy.init_node('graspit_python_server')
-         g = GraspitExecutionListener(('128.59.17.206',4765))
+         g = GraspitExecutionListener(('128.59.22.115',4765))
 #         g = GraspitExecutionListener(('tonga.cs.columbia.edu',4765))
          g.graspit_commander.get_graspit_objects()
 #         table_ind = g.graspit_commander.object_ind('experiment_table')
