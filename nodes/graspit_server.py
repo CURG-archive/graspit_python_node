@@ -112,10 +112,12 @@ class GraspitExecutionListener( object ):
         while not self.try_reconnect():
             print "initial connection failed. Reconnecting \n"
         self.grasp_pub = rospy.Publisher('/graspit/grasps', graspit_msgs.msg.Grasp)
-        self.target_pub = rospy.Publisher('/graspit/target_name', std_msgs.msg.String)
+        self.target_subscriber = rospy.Subscriber('/graspit/target_name', std_msgs.msg.String, self.set_target) 
         self.object_recognition_pub = rospy.Publisher('/graspit/refresh_models', std_msgs.msg.Empty)
         self.transform_listener = tf.TransformListener()
         self.error_error_subscriber = rospy.Subscriber("/graspit/status", graspit_msgs.msg.GraspStatus, self.send_error)
+        self.target_name = []
+
 
     def try_reconnect(self):
         try:
@@ -124,14 +126,18 @@ class GraspitExecutionListener( object ):
             s.connect(self.hostname)
             self.socket = s
             self.graspit_commander = graspitManager(self.socket)
-            self.graspit_commander.connect_world_planner()
             return True
         except:
             return False
         
     def run_object_recognition(self):
         self.object_recognition_pub.publish()
+
+    def set_target(self, msg):
+        self.target_name = msg.data
+        self.graspit_commander.set_planner_target(self.target_name)
         
+
     def send_error(self, msg):
         self.graspit_commander.send_grasp_failed(0, msg.grasp_status, msg.status_msg)
 
@@ -167,7 +173,7 @@ class GraspitExecutionListener( object ):
 
         grasp_msg = self.parse_grasp_string(received_string)
         target_name = self.graspit_commander.get_planner_target_name()
-        self.target_pub.publish(target_name)
+        #self.target_pub.publish(target_name)
         self.grasp_pub.publish(grasp_msg[0])
         #except Exception as e:
         #    print e
@@ -190,7 +196,7 @@ class GraspitExecutionListener( object ):
 if __name__ == '__main__':
      try:
          rospy.init_node('graspit_python_server')
-         g = GraspitExecutionListener(('128.59.22.115',4765))
+         g = GraspitExecutionListener(('picard.cs.columbia.edu',4765))
 #         g = GraspitExecutionListener(('tonga.cs.columbia.edu',4765))
          g.graspit_commander.get_graspit_objects()
 #         table_ind = g.graspit_commander.object_ind('experiment_table')

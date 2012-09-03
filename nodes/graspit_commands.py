@@ -100,8 +100,14 @@ class graspitManager():
         self.get_graspit_objects()
         return succeeded
 
-    def add_object(self, obstacle_name):
-        command_str = "addObject " + obstacle_name + ".xml \n"
+    def add_object(self, object_name):
+        command_str = "addObject " + object_name + ".xml \n"
+        self.socket.send(command_str)
+        self.get_graspit_objects()
+        return self.socket.recv(100)
+
+    def set_planner_target(self, object_name):
+        command_str = "setPlannerTarget " + object_name + ".xml \n"
         self.socket.send(command_str)
         self.get_graspit_objects()
         return self.socket.recv(100)
@@ -138,9 +144,6 @@ class graspitManager():
         return self.set_body_trans(rel_body_name, rel_trans)
         
 
-    def connect_world_planner(self):
-        self.socket.send('connectToWorldPlanner \n')
-        
     def send_grasp_failed(self, grasp_index, error_num, error_string):
         self.socket.send('signalGraspUnreachable %i %i %s\n'%(grasp_index, error_num, error_string) )
                          
