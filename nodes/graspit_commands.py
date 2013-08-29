@@ -5,6 +5,10 @@ import tf
 from tf_conversions import *
 import re
 import socket
+import sensor_msgs.msg
+import point_cloud2
+import collections
+import struct
 
 unsigned_num_regex = "[0-9]*"
 signed_num_regex = "[+-]?" + unsigned_num_regex
@@ -18,9 +22,9 @@ class graspitManager():
             self.object_transform = object_transform
             self.object_name = object_name
 
-    def __init__(self, socket):
-        self.socket = socket
-        self.socket.settimeout(3)
+    def __init__(self, sock):
+        self.socket = sock
+        self.socket.settimeout(5)
         self.graspable_body_list = []
         self.obstacle_list = []
         self.body_list = []
@@ -100,22 +104,50 @@ class graspitManager():
         self.get_graspit_objects()
         return succeeded
 
-    def add_object(self, object_name):
-        command_str = "addObject " + object_name + ".xml \n"
+    def add_object(self, model_name, object_name = "", pose_msg = Pose()):
+        if object_name == "":
+            object_name = model_name
+        pose_str = self.pose_msg_to_tran_string(pose_msg)
+        command_str = "addObject " + model_name + ".xml " + object_name + " " + pose_str + " \n"
         self.socket.send(command_str)
-        self.get_graspit_objects()
-        return self.socket.recv(100)
+        try:
+            result = self.socket.recv(10)
+        except:
+            return False
+        # got_objects = False
+        # while not got_objects:
+        #     try:
+        #         self.get_graspit_objects()
+        #         got_objects = True
+        #         print "got objects in add object"
+        #     except:
+        #         print "failed to get objects"
+                            
+        return result
+
+    def set_object_name(self, object_ind, object_name):
+        command_str = "setBodyName %d % s\n"%(object_ind, object_name)
+        self.socket.send(command_str)
+    
 
     def set_planner_target(self, object_name):
         command_str = "setPlannerTarget " + object_name + ".xml \n"
-        self.socket.send(command_str)
-        self.get_graspit_objects()
-        return self.socket.recv(100)
+        self.socket.send(command_str)        
+        try:
+            self.socket.recv(100)
+        except:
+            pass
+        return True
+
+    def clear_objects(self, object_string):
+        command_str = "clearGraspableBodies %s \n"%(object_string)
+        self.socket.send(command_str)        
+        return True
 
     def pose_msg_to_tran_string(self, pose_msg):
-        return( "%f %f %f %f %f %f %f"%(pose_msg.position.x,
-                                       pose_msg.position.y,
-                                       pose_msg.position.z,
+        return( "%f %f %f %f %f %f %f"%(pose_msg.position.x*1000,
+                                       pose_msg.position.y*1000,
+                                       pose_msg.position.z*1000,
                                        pose_msg.orientation.w,
                                        pose_msg.orientation.x,
                                        pose_msg.orientation.y,
@@ -124,13 +156,20 @@ class graspitManager():
 
 
     def set_bodyind_trans_from_pose_msg(self, object_ind, pose_msg):
+        if object_ind == []:
+            print "set_body_ind_trans_from_pose_msg: no object ind"
+            return False
+        
         command_str = "setBodyTransf 1 %i "%(object_ind[0]) + self.pose_msg_to_tran_string(pose_msg) + '\n'
         self.socket.send(command_str)
         return self.socket.recv(100)
 
 
-    def set_body_trans_from_pose_msg(self, object_name, pose_msg):
-        return self.set_bodyind_trans_from_pose_msg(self.object_ind(object_name), pose_msg)
+    def set_body_trans_from_pose_msg(self, object_name, pose_msg):        
+        result = self.set_bodyind_trans_from_pose_msg(self.object_ind(object_name), pose_msg)
+        if not result:
+            print "failed to add object_name %s"%(object_name)
+        return result
 
     def set_body_trans(self, object_name, trans_mat):
         pose_msg = toMsg(fromMatrix(trans_mat))
@@ -157,4 +196,68 @@ class graspitManager():
         tran = self.get_current_hand_tran()
         return toMsg(fromMatrix(tran))
     
+
+    def send_pointcloud_to_graspit(self, pointcloud_msg, downsample_factor = 1):
+        uvs = [(u,v) for u in range(0, pointcloud_msg.height, downsample_factor)
+               for v in range(0, pointcloud_msg.width,  downsample_factor)]
+        point_generator = point_cloud2.read_points(pointcloud_msg,None, True, uvs)
+        point_list = [point for point in point_generator]
+        return point_list
+        
+    def send_pointlist_to_graspit(self, pointcloud_msg, downsample_factor = 1, num_points = -1 , tran = np.eye(4)):
+        uvs = []
+        if not downsample_factor == 1:
+            uvs = [(u,v) for u in range(0, pointcloud_msg.height, downsample_factor)
+                   for v in range(0, pointcloud_msg.width,  downsample_factor)]
+        point_generator = point_cloud2.read_points(pointcloud_msg,None, True, uvs)
+        point_list = [point for point in point_generator]
+        color_list = [struct.unpack('BBBx', struct.pack('f',point[3])) for point in point_list]
+        total_str = ""
+        point_list2 = point_list[:num_points]
+        for point_ind, point in enumerate(point_list2):
+            color = color_list[point_ind]
+            point_vec = tran*np.mat([point[0],point[1],point[2], 1]).transpose()
+            point_str_list = " %f %f %f %i %i %i"%(point_vec[0], point_vec[1], point_vec[2],
+                                                  color[2], color[1], color[0])
+            total_str += point_str_list
+        command_str = "addPointCloud %i%s \n"%(len(point_list2), total_str)
+        self.socket.sendall(command_str)
+        #success = bool(self.socket.recv(100))
+        return command_str
+
+    def set_camera_origin(self, origin_point):
+        command_str = "setCameraOrigin %f %f %f \n"%(origin_point[0],
+                                    origin_point[1], origin_point[2])
+        self.socket.send(command_str)
+        return command_str
+            
+    def remove_bodies(self, body_ind_list):
+        body_str = None
+
+        try:
+            body_str = ' '.join([str(a) for a in body_ind_list])
+        except:
+            raise Exception('remove_bodies: body_ind of bad type')
+        
+        command_str = "removeBodies " + body_str + '\n'
+        self.socket.send(command_str)
+        return command_str
+    
+            
+    def remove_bodies_by_name(self, body_names):
+        body_name_list = None
+        if isinstance(body_names, str):
+            body_names_list = body_names.split(' ')
+        elif isinstance(body_names, collections.Iterable):
+            body_name_list = body_names
+        else:
+            raise Exception('remove_bodies_by_name: body_names of bad type')
+
+        #translate body names to body inds
+        body_ind_list = []
+        [body_ind_list.extend(self.object_ind(object_name)) for object_name in body_name_list]
+        return self.remove_bodies(body_ind_list)
+        
+        
+            
 

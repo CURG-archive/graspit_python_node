@@ -15,15 +15,11 @@ from numpy import hstack, vstack, mat, array, arange, fabs
 import pdb
 from graspit_commands import *
 import std_msgs.msg
-
-#def main():
-#   pass
+import tf_conversions.posemath as pm
 
 
 
 
-#if __name__ == "__main__":
-#    main()
 
 test_string = '{0.588131 0.742387 -0.160745 -0.277714 -109.514 48.7265 10.208 0 1.58644 0.690816 0.783941 -5.38901e+305 -5.38901e+305,}\n'
 
@@ -105,30 +101,85 @@ def parse_unstructured_grasp_string(grasp_string):
     
 
 class GraspitExecutionListener( object ):
-    def __init__(self, hostname):
+    def __init__(self, hostname, pointcloud_topic):
         self.socket = []
         self.graspit_commander = []        
         self.hostname = hostname
         while not self.try_reconnect():
             print "initial connection failed. Reconnecting \n"
         self.grasp_pub = rospy.Publisher('/graspit/grasps', graspit_msgs.msg.Grasp)
-        self.target_subscriber = rospy.Subscriber('/graspit/target_name', std_msgs.msg.String, self.set_target) 
+        #self.target_subscriber = rospy.Subscriber('/graspit/target_name', std_msgs.msg.String, self.set_target)
+        self.object_subscriber = rospy.Subscriber('/graspit/object_name', graspit_msgs.msg.ObjectInfo, self.add_object)
+        self.clear_objects_subscriber = rospy.Subscriber('/graspit/remove_objects', std_msgs.msg.String, self.clear_objects)
         self.object_recognition_pub = rospy.Publisher('/graspit/refresh_models', std_msgs.msg.Empty)
+        self.target_name_pub = rospy.Publisher('/graspit/target_name', std_msgs.msg.String)
         self.transform_listener = tf.TransformListener()
         self.error_error_subscriber = rospy.Subscriber("/graspit/status", graspit_msgs.msg.GraspStatus, self.send_error)
-        self.target_name = []
-
+        self.target_name = ""
+        self.target_transform = eye(4)
+        self.pointcloud_topic = pointcloud_topic
 
     def try_reconnect(self):
         try:
             s = socket.socket()
-            s.settimeout(2)
             s.connect(self.hostname)
+            s.settimeout(5)
+            s.setblocking(False)
             self.socket = s
             self.graspit_commander = graspitManager(self.socket)
             return True
         except:
             return False
+
+    def try_get_transform(self):
+        try:
+            self.transform_listener.waitForTransform("/camera_rgb_optical_frame", self.target_name, rospy.Time(0),rospy.Duration(.1))
+        except:
+            return False
+        self.target_transform = tf_conversions.toMatrix(tf_conversions.fromTf(
+                                self.transform_listener.lookupTransform(
+                                "/camera_rgb_optical_frame", self.target_name, rospy.Time(0))))
+        return True
+
+    def try_get_world_transform(self):
+        try:
+            self.transform_listener.waitForTransform("/camera_rgb_optical_frame", "/world", rospy.Time(0),rospy.Duration(.1))
+        except:
+            return False
+        self.target_transform = tf_conversions.toMatrix(tf_conversions.fromTf(
+            self.transform_listener.lookupTransform(
+                "/camera_rgb_optical_frame",'/world', rospy.Time(0))))
+        return True
+    
+    def update_object_pointcloud(self):
+
+        def get_point():
+            pc = rospy.wait_for_message(self.pointcloud_topic, sensor_msgs.msg.PointCloud2,2)
+            return pc
+        print "updating object pointcloud "
+        if self.try_get_transform() or self.try_get_world_transform():
+            try:
+                pc = get_point()
+            except:
+                return
+
+            self.graspit_commander.send_pointlist_to_graspit(pc, 5, -1, np.linalg.inv(self.target_transform))
+            print "got transform"
+        else:
+            print "Failed to get transform"
+            
+#        print "updating object pointcloud in graspit"
+#        if self.try_get_transform():
+#            pc = get_point()
+#            point_list = self.graspit_commander.send_pointcloud_to_graspit(pc, 20)
+#            self.graspit_commander.send_pointlist_to_graspit(point_list, -1, np.linalg.inv(self.target_transform))
+#
+#        else:
+#            print "Failed to get transform"
+#        return
+        
+        
+        
         
     def run_object_recognition(self):
         self.object_recognition_pub.publish()
@@ -136,10 +187,23 @@ class GraspitExecutionListener( object ):
     def set_target(self, msg):
         self.target_name = msg.data
         self.graspit_commander.set_planner_target(self.target_name)
+        if not self.try_get_transform():
+            print "Unable to get transform"
+        #else:
+            #self.graspit_commander.set_camera_origin(np.linalg.inv(self.target_transform)[0:3,3])
+
+    def add_object(self, msg):
+        model_name=msg.object_name.split(' ')[0]
+        object_name=msg.object_name.split(' ')[1]        
+        self.graspit_commander.add_object(model_name, object_name, msg.object_pose)
         
+
 
     def send_error(self, msg):
         self.graspit_commander.send_grasp_failed(0, msg.grasp_status, msg.status_msg)
+
+    def clear_objects(self, msg):
+        self.graspit_commander.clear_objects(msg.data)
 
     def parse_grasp_string(self, grasp_string):
         """Parse string returned to graspit in to grasp message
@@ -152,31 +216,43 @@ class GraspitExecutionListener( object ):
         grasp_msg[0].final_grasp_pose = final_grasp_pose
         return grasp_msg
         
-    def try_read(self):
-        received_string = ""
+    def try_read(self):        
         try:
             received_string = self.socket.recv(4096)
-        except Exception as e:
+        except Exception as e:            
             if isinstance(e, socket.timeout):
                 return [],[]
+        
         if received_string == "":
             print "trying to reconnect"
             self.socket = []
             self.try_reconnect()
             return [],[]
+        for line in received_string.split('\n'):
+            if line.split(' ')[0] == "runObjectRecognition":
+                self.run_object_recognition()
+                #self.clear_objects(std_msgs.msg.String('blah'))
+                #self.target_name = ""
+                #self.target_name_pub.publish(self.target_name)
+                #self.try_get_transform()
+                return [], "runObjectRecogntion"
 
-        if recieved_string.split(' ')[0] == "runObjectRecognition":
-            self.run_object_recognition()
-            return [], "runObjectRecogntion"
-        
-        #try:
+            if line.split(' ')[0] == 'setTarget' and len(line.split(' ')) > 1:
+                self.target_name = line.split(' ')[1].rstrip('\n')
+                self.target_name_pub.publish(self.target_name)
+                if not self.try_get_transform():                
+                    print "Unable to get transform"
+                return [], 'setTarget'
 
-        grasp_msg = self.parse_grasp_string(received_string)
-        target_name = self.graspit_commander.get_planner_target_name()
-        #self.target_pub.publish(target_name)
-        self.grasp_pub.publish(grasp_msg[0])
-        #except Exception as e:
-        #    print e
+
+
+            grasp_msg = []
+            try:
+                grasp_msg = self.parse_grasp_string(line)            
+                self.grasp_pub.publish(grasp_msg[0])
+            except Exception as e:                
+                print "error parsing line: %s"%(line)
+
         return received_string, grasp_msg
 
 
@@ -196,9 +272,15 @@ class GraspitExecutionListener( object ):
 if __name__ == '__main__':
      try:
          rospy.init_node('graspit_python_server')
-         g = GraspitExecutionListener(('picard.cs.columbia.edu',4765))
+         send_cloud = rospy.get_param('send_cloud',True)
+         graspit_url = rospy.get_param('graspit_url','picard.cs.columbia.edu')
+         pointcloud_topic = rospy.get_param('graspit_pointcloud_topic', '/camera/depth_registered/points')
+         print graspit_url
+         g = GraspitExecutionListener((graspit_url,4765), pointcloud_topic)
+
 #         g = GraspitExecutionListener(('tonga.cs.columbia.edu',4765))
          g.graspit_commander.get_graspit_objects()
+         print "got objects \n"
 #         table_ind = g.graspit_commander.object_ind('experiment_table')
 #         if not table_ind:
 #             g.graspit_commander.add_object('experiment_table')            
@@ -206,7 +288,8 @@ if __name__ == '__main__':
          loop = rospy.Rate(10)
          while not rospy.is_shutdown():
              s,grasp_msg = g.try_read()
-#             g.update_table()
+             if send_cloud:
+                 g.update_object_pointcloud()
              print grasp_msg
              loop.sleep()
      except rospy.ROSInterruptException: pass
