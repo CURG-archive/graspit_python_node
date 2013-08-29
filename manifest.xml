@@ -1,0 +1,20 @@
+<package>
+  <description brief="graspit_python_node">
+
+     graspit_python_node
+
+  </description>
+  <author>Darpa Public Use</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/graspit_python_node</url>
+  <depend package="rospy" />
+  <depend package="graspit_msgs" />
+  <depend package="tf" />
+  <depend package="tf_conversions" />
+  <depend package="geometry_msgs" />
+  <depend package="trajectory_planner" />
+  
+</package>
+
+
