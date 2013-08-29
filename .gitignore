@@ -3,3 +3,5 @@
 \#*
 *.orig
 *.pyc
+unit_test
+test_point_unpacking*
