@@ -108,6 +108,8 @@ class GraspitExecutionListener( object ):
         while not self.try_reconnect():
             print "initial connection failed. Reconnecting \n"
         self.grasp_pub = rospy.Publisher('/graspit/grasps', graspit_msgs.msg.Grasp)
+        self.analyze_grasp_pub = rospy.Publisher('/graspit/analyze_grasps', graspit_msgs.msg.Grasp)
+        
         #self.target_subscriber = rospy.Subscriber('/graspit/target_name', std_msgs.msg.String, self.set_target)
         self.object_subscriber = rospy.Subscriber('/graspit/object_name', graspit_msgs.msg.ObjectInfo, self.add_object)
         self.clear_objects_subscriber = rospy.Subscriber('/graspit/remove_objects', std_msgs.msg.String, self.clear_objects)
@@ -227,9 +229,11 @@ class GraspitExecutionListener( object ):
             print "trying to reconnect"
             self.socket = []
             self.try_reconnect()
-            return [],[]
+            return [],[]        
+        
         for line in received_string.split('\n'):
-            if line.split(' ')[0] == "runObjectRecognition":
+            words = line.split(' ')
+            if words[0] == "runObjectRecognition":
                 self.run_object_recognition()
                 #self.clear_objects(std_msgs.msg.String('blah'))
                 #self.target_name = ""
@@ -237,15 +241,18 @@ class GraspitExecutionListener( object ):
                 #self.try_get_transform()
                 return [], "runObjectRecogntion"
 
-            if line.split(' ')[0] == 'setTarget' and len(line.split(' ')) > 1:
-                self.target_name = line.split(' ')[1].rstrip('\n')
+            if words[0] == 'setTarget' and len(words) > 1:
+                self.target_name = words[1].rstrip('\n')
                 self.target_name_pub.publish(self.target_name)
                 if not self.try_get_transform():                
                     print "Unable to get transform"
                 return [], 'setTarget'
 
-
-
+            if words[0] == 'analyzeGrasp':
+                grasp_line = ' '.join(words[1:])
+                grasp_msg = self.parse_grasp_string(grasp_line)
+                self.analyze_grasp_pub(grasp_msg)
+                
             grasp_msg = []
             try:
                 grasp_msg = self.parse_grasp_string(line)            
