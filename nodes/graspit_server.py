@@ -249,8 +249,9 @@ class GraspitExecutionListener( object ):
                 return [], 'setTarget'
 
             if words[0] == 'analyzeGrasp':
-                grasp_line = ' '.join(words[1:])
-                grasp_msg = self.parse_grasp_string(grasp_line)
+                grasp_line = ' '.join(words[2:])
+                grasp_msg = self.parse_grasp_string(grasp_line)[0]
+                grasp_msg.secondary_qualities[0] = float(words[1])
                 self.analyze_grasp_pub(grasp_msg)
                 
             grasp_msg = []
