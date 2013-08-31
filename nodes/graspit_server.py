@@ -113,6 +113,7 @@ class GraspitExecutionListener( object ):
         #self.target_subscriber = rospy.Subscriber('/graspit/target_name', std_msgs.msg.String, self.set_target)
         self.object_subscriber = rospy.Subscriber('/graspit/object_name', graspit_msgs.msg.ObjectInfo, self.add_object)
         self.clear_objects_subscriber = rospy.Subscriber('/graspit/remove_objects', std_msgs.msg.String, self.clear_objects)
+        self.analysis_results_subsciber = rospy.Subscriber("/graspit/analyze_grasps_results", graspit_msgs.msg.GraspStatus, self.grasp_test_results)
         self.object_recognition_pub = rospy.Publisher('/graspit/refresh_models', std_msgs.msg.Empty)
         self.target_name_pub = rospy.Publisher('/graspit/target_name', std_msgs.msg.String)
         self.transform_listener = tf.TransformListener()
@@ -199,6 +200,8 @@ class GraspitExecutionListener( object ):
         object_name=msg.object_name.split(' ')[1]        
         self.graspit_commander.add_object(model_name, object_name, msg.object_pose)
         
+    def grasp_test_results(self, msg):
+        self.graspit_commander.set_grasp_attribute(msg.grasp_identifier, 'testResult', msg.grasp_status)
 
 
     def send_error(self, msg):
