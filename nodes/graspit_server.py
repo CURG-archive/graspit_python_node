@@ -86,7 +86,7 @@ def parse_unstructured_grasp_string(grasp_string):
         volume_quality = float(gs_list[12])
         quality_list = []
         if len(gs_list) > 13:
-            quality_list = [float(x) for x in gs_list[13:-1]]
+            quality_list = [float(x) for x in gs_list[13:]]
 
     
         q = geometry_msgs.msg.Quaternion(w = quat_list[0], x = quat_list[1], y = quat_list[2], z = quat_list[3])
