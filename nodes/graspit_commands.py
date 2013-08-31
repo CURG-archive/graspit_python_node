@@ -258,6 +258,14 @@ class graspitManager():
         [body_ind_list.extend(self.object_ind(object_name)) for object_name in body_name_list]
         return self.remove_bodies(body_ind_list)
         
-        
+
+    def set_grasp_attribute(self, grasp_id, attribute, value):
+        """
+        @param attribute - The string describing the name of the attribute.
+        @param value - The value to set the attribute to.
+        """
+        command_str = "setGraspAttribute %f %s %f"%(grasp_id, attribute, value)
+        self.socket.send(command_str)
+        return command_str
             
 
