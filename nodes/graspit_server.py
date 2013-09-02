@@ -121,7 +121,7 @@ class GraspitExecutionListener( object ):
         self.target_name = ""
         self.target_transform = eye(4)
         self.pointcloud_topic = pointcloud_topic
-
+        self.remainder_string = ""
     def try_reconnect(self):
         try:
             s = socket.socket()
@@ -290,7 +290,8 @@ if __name__ == '__main__':
          g = GraspitExecutionListener((graspit_url,4765), pointcloud_topic)
 
 #         g = GraspitExecutionListener(('tonga.cs.columbia.edu',4765))
-         g.graspit_commander.get_graspit_objects()
+         g.remainder_string = g.graspit_commander.get_graspit_objects()         
+         
          print "got objects \n"
 #         table_ind = g.graspit_commander.object_ind('experiment_table')
 #         if not table_ind:
