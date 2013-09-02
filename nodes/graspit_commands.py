@@ -53,16 +53,16 @@ class graspitManager():
         return_str_list = return_str.split('\n')        
         num_bodies = int(return_str_list[0])
         new_list = list()
-        for i in range(1,len(return_str_list)):
+        for i in range(1, num_bodies+1):
             if return_str_list[i] =='':
                 continue
             new_list.append(return_str_list[i])
-        return new_list
+        return new_list, '\n'.join(return_str_list[num_bodies+1:])
 
     def get_body_list(self):
         command_str = "getBodyName ALL \n"        
-        body_list = self.get_list_by_body(command_str)
-        return body_list
+        body_list, remainder_string = self.get_list_by_body(command_str)
+        return body_list, remainder_string
 
     def process_transform_string(self, tran_str):
         r = re.findall(float_regex, tran_str)
@@ -80,22 +80,25 @@ class graspitManager():
 
     def get_body_transforms(self):
         command_str = "sendBodyTransf ALL \n"
-        transform_string_list = self.get_list_by_body(command_str)
+
+        transform_string_list, remainder_string = self.get_list_by_body(command_str)
         transform_matrix_list = list()
+        remainder_string = ""
         for transform_string in transform_string_list:
             transform_list = [float(x) for x in self.process_transform_string(transform_string)]
             
             p = Pose(position = Point(transform_list[0], transform_list[1], transform_list[2]),
                      orientation = Quaternion(w = transform_list[3], x = transform_list[4],
-                                  y = transform_list[5], z = transform_list[6]))
+                                              y = transform_list[5], z = transform_list[6]))
             transform_matrix_list.append(toMatrix(fromMsg(p)))
-        return transform_matrix_list
+                
+        return transform_matrix_list, remainder_string
 
     def get_graspit_objects(self):
-        body_list = self.get_body_list()
-        transform_list = self.get_body_transforms()
+        body_list, remainder_string = self.get_body_list()
+        transform_list, remainder_string2 = self.get_body_transforms()
         self.body_list = [self.graspit_object(n,t) for n,t in zip(body_list, transform_list)]
-
+        return remainder_string + remainder_string2
     
     def add_obstacle(self, obstacle_name):
         command_str = "addObstacle " + obstacle_name + ".xml \n"
@@ -258,6 +261,14 @@ class graspitManager():
         [body_ind_list.extend(self.object_ind(object_name)) for object_name in body_name_list]
         return self.remove_bodies(body_ind_list)
         
-        
+
+    def set_grasp_attribute(self, grasp_id, attribute, value):
+        """
+        @param attribute - The string describing the name of the attribute.
+        @param value - The value to set the attribute to.
+        """
+        command_str = "setGraspAttribute %f %s %f"%(grasp_id, attribute, value)
+        self.socket.send(command_str)
+        return command_str
             
 
