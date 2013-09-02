@@ -120,6 +120,7 @@ class GraspitExecutionListener( object ):
         self.error_error_subscriber = rospy.Subscriber("/graspit/status", graspit_msgs.msg.GraspStatus, self.send_error)
         self.target_name = ""
         self.target_transform = eye(4)
+        self.world_transform = eye(4)
         self.pointcloud_topic = pointcloud_topic
         self.remainder_string = ""
     def try_reconnect(self):
@@ -149,7 +150,7 @@ class GraspitExecutionListener( object ):
             self.transform_listener.waitForTransform("/camera_rgb_optical_frame", "/world", rospy.Time(0),rospy.Duration(.1))
         except:
             return False
-        self.target_transform = tf_conversions.toMatrix(tf_conversions.fromTf(
+        self.world_transform = tf_conversions.toMatrix(tf_conversions.fromTf(
             self.transform_listener.lookupTransform(
                 "/camera_rgb_optical_frame",'/world', rospy.Time(0))))
         return True
@@ -160,14 +161,15 @@ class GraspitExecutionListener( object ):
             pc = rospy.wait_for_message(self.pointcloud_topic, sensor_msgs.msg.PointCloud2,2)
             return pc
         print "updating object pointcloud "
-        if self.try_get_transform() or self.try_get_world_transform():
+        if self.try_get_world_transform():
             try:
                 pc = get_point()
             except:
-                return
+                return ''
 
-            self.graspit_commander.send_pointlist_to_graspit(pc, 5, -1, np.linalg.inv(self.target_transform))
+            self.graspit_commander.send_pointlist_to_graspit(pc, 5, -1, np.linalg.inv(self.world_transform))
             print "got transform"
+            
         else:
             print "Failed to get transform"
             
