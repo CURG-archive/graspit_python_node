@@ -210,18 +210,65 @@ class GraspitExecutionListener( object ):
     def clear_objects(self, msg):
         self.graspit_commander.clear_objects(msg.data)
 
-    def parse_grasp_string(self, grasp_string):
+    def parse_grasp_string(self, grasp_string, refine = True):
         """Parse string returned to graspit in to grasp message
         FIXME
         This and all of it's helper functions should move in to graspit_commands.py
 
         """
         grasp_msg = parse_unstructured_grasp_string(grasp_string)
-        final_grasp_pose = self.graspit_commander.get_current_hand_pose_msg()
-        grasp_msg[0].final_grasp_pose = final_grasp_pose
-        return grasp_msg
+        if refine:
+            final_grasp_pose = self.graspit_commander.get_current_hand_pose_msg()            
+            grasp_msg[0].final_grasp_pose = final_grasp_pose            
         
-    def try_read(self):        
+        return grasp_msg
+
+    def parseCmdString(self, received_string):        
+        def parseCmdLine(line):
+            result = []
+            try:
+                words = line.split(' ')
+                if words[0] == "runObjectRecognition":
+                    self.run_object_recognition()
+                    #self.clear_objects(std_msgs.msg.String('blah'))
+                    #self.target_name = ""
+                    #self.target_name_pub.publish(self.target_name)
+                    #self.try_get_transform()
+                    
+
+                elif words[0] == 'setTarget' and len(words) > 1:
+                    self.target_name = words[1].rstrip('\n')
+                    self.target_name_pub.publish(self.target_name)
+                    if not self.try_get_transform():                
+                        print "Unable to get transform"
+                    
+
+                elif words[0] == 'analyzeGrasp':
+                    grasp_line = ' '.join(words[2:])                    
+                    grasp_msg = self.parse_grasp_string(grasp_line, False)[0]
+                    grasp_msg.secondary_qualities[0] = float(words[1])
+                    self.analyze_grasp_pub.publish(grasp_msg)
+                    result = grasp_msg
+                
+                elif words[0] == "doGrasp":
+                    grasp_msg = self.parse_grasp_string(' '.join(words[1:]))[0]
+                    self.grasp_pub.publish(grasp_msg)
+                    result = grasp_msg
+                else:
+                    print "unknown line %s"%(line)
+                return [words[0], result]
+            except Exception as e:                
+                print "error parsing line: %s"%(line)
+                self.remainder_string = line
+                return [],[]
+        received_string = self.remainder_string + received_string
+        self.remainder_string = ""
+        return [parseCmdLine(line) for line in received_string.split('\n')]
+        
+            
+        
+    def try_read(self):
+        
         try:
             received_string = self.socket.recv(4096)
         except Exception as e:            
@@ -233,38 +280,9 @@ class GraspitExecutionListener( object ):
             self.socket = []
             self.try_reconnect()
             return [],[]        
-        
-        for line in received_string.split('\n'):
-            words = line.split(' ')
-            if words[0] == "runObjectRecognition":
-                self.run_object_recognition()
-                #self.clear_objects(std_msgs.msg.String('blah'))
-                #self.target_name = ""
-                #self.target_name_pub.publish(self.target_name)
-                #self.try_get_transform()
-                return [], "runObjectRecogntion"
-
-            if words[0] == 'setTarget' and len(words) > 1:
-                self.target_name = words[1].rstrip('\n')
-                self.target_name_pub.publish(self.target_name)
-                if not self.try_get_transform():                
-                    print "Unable to get transform"
-                return [], 'setTarget'
-
-            if words[0] == 'analyzeGrasp':
-                grasp_line = ' '.join(words[2:])
-                grasp_msg = self.parse_grasp_string(grasp_line)[0]
-                grasp_msg.secondary_qualities[0] = float(words[1])
-                self.analyze_grasp_pub(grasp_msg)
-                
-            grasp_msg = []
-            try:
-                grasp_msg = self.parse_grasp_string(line)            
-                self.grasp_pub.publish(grasp_msg[0])
-            except Exception as e:                
-                print "error parsing line: %s"%(line)
-
-        return received_string, grasp_msg
+        results = self.parseCmdString(received_string)
+        print results
+        return 
 
 
 
@@ -299,10 +317,10 @@ if __name__ == '__main__':
 #             g.graspit_commander.add_obstacle('experiment_table')            
          loop = rospy.Rate(10)
          while not rospy.is_shutdown():
-             s,grasp_msg = g.try_read()
+             g.try_read()
              if send_cloud:
                  g.update_object_pointcloud()
-             print grasp_msg
+
              loop.sleep()
      except rospy.ROSInterruptException: pass
     
