@@ -206,7 +206,12 @@ class GraspitExecutionListener( object ):
         self.graspit_commander.add_object(model_name, object_name, msg.object_pose)
         
     def grasp_test_results(self, msg):
-        self.graspit_commander.set_grasp_attribute(msg.grasp_identifier, 'testResult', msg.grasp_status)
+        grasp_status = msg.grasp_status
+        if(msg.grasp_status == graspit_msgs.msg.GraspStatus.SUCCESS):
+            grasp_status = -1
+        
+        
+        self.graspit_commander.set_grasp_attribute(msg.grasp_identifier, 'testResult', -grasp_status)
 
 
     def send_error(self, msg):
