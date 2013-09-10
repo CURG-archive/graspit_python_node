@@ -131,7 +131,7 @@ class GraspitExecutionListener( object ):
             s.setblocking(False)
             self.socket = s
             self.graspit_commander = graspitManager(self.socket)
-            return True
+            return bool(self.graspit_commander.connect_to_planner())
         except:
             return False
 
@@ -308,15 +308,8 @@ if __name__ == '__main__':
          pointcloud_topic = rospy.get_param('graspit_pointcloud_topic', '/camera/depth_registered/points')
          print graspit_url
          g = GraspitExecutionListener((graspit_url,4765), pointcloud_topic)
-
-#         g = GraspitExecutionListener(('tonga.cs.columbia.edu',4765))
-         g.remainder_string = g.graspit_commander.get_graspit_objects()         
          
-         print "got objects \n"
-#         table_ind = g.graspit_commander.object_ind('experiment_table')
-#         if not table_ind:
-#             g.graspit_commander.add_object('experiment_table')            
-#             g.graspit_commander.add_obstacle('experiment_table')            
+
          loop = rospy.Rate(10)
          while not rospy.is_shutdown():
              g.try_read()
