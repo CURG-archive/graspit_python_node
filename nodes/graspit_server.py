@@ -261,7 +261,7 @@ class GraspitExecutionListener( object ):
                     result = grasp_msg
                 
                 elif words[0] == "doGrasp":
-                    grasp_msg = self.parse_grasp_string(' '.join(words[1:]))[0]
+                    grasp_msg = self.parse_grasp_string(' '.join(words[1:]), False)[0]
                     self.grasp_pub.publish(grasp_msg)
                     result = grasp_msg
                 else:
