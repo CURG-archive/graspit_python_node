@@ -187,6 +187,9 @@ class GraspitExecutionListener( object ):
         
         
     def run_object_recognition(self):
+        if self.try_get_world_transform():
+            self.graspit_commander.set_camera_origin(np.linalg.inv(self.world_transform)[0:3,3])
+        
         self.object_recognition_pub.publish()
 
     def set_target(self, msg):
