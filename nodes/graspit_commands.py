@@ -267,7 +267,7 @@ class graspitManager():
         @param attribute - The string describing the name of the attribute.
         @param value - The value to set the attribute to.
         """
-        command_str = "setGraspAttribute %f %s %f"%(grasp_id, attribute, value)
+        command_str = "setGraspAttribute %f %s %f \n"%(grasp_id, attribute, value)
         self.socket.send(command_str)
         return command_str
             
