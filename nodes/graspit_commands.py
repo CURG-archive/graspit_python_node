@@ -272,3 +272,14 @@ class graspitManager():
         return command_str
             
 
+    def connect_to_planner(self):
+        command_str = "connectToPlanner \n"
+        self.socket.send(command_str)
+        result = 0
+        try:
+            result = int(self.socket.recv(10))
+            print "Connected to graspit planner \n"
+        except:
+            print "Failed to connect to planner \n"
+            
+        return result
