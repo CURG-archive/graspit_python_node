@@ -267,8 +267,19 @@ class graspitManager():
         @param attribute - The string describing the name of the attribute.
         @param value - The value to set the attribute to.
         """
-        command_str = "setGraspAttribute %f %s %f"%(grasp_id, attribute, value)
+        command_str = "setGraspAttribute %f %s %f \n"%(grasp_id, attribute, value)
         self.socket.send(command_str)
         return command_str
             
 
+    def connect_to_planner(self):
+        command_str = "connectToPlanner \n"
+        self.socket.send(command_str)
+        result = 0
+        try:
+            result = int(self.socket.recv(10))
+            print "Connected to graspit planner \n"
+        except:
+            print "Failed to connect to planner \n"
+            
+        return result
