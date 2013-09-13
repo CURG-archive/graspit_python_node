@@ -78,22 +78,23 @@ def parse_unstructured_grasp_string(grasp_string):
         #split into unstructured list
         gs_list = grasp.split(' ')
         #extract grasp fields
-        quat_list = [float(x) for x in gs_list[0:4]]
-        tran_list = [float(x) for x in gs_list[4:7]]
+        object_name = gs[0]
+        quat_list = [float(x) for x in gs_list[1:5]]
+        tran_list = [float(x) for x in gs_list[5:8]]
     
-        dof_list = [float(x) for x in gs_list[7:11]]
-        epsilon_quality = float(gs_list[11])
-        volume_quality = float(gs_list[12])
+        dof_list = [float(x) for x in gs_list[8:12]]
+        epsilon_quality = float(gs_list[12])
+        volume_quality = float(gs_list[13])
         quality_list = []
-        if len(gs_list) > 13:
-            quality_list = [float(x) for x in gs_list[13:]]
+        if len(gs_list) > 14:
+            quality_list = [float(x) for x in gs_list[14:]]
 
     
         q = geometry_msgs.msg.Quaternion(w = quat_list[0], x = quat_list[1], y = quat_list[2], z = quat_list[3])
         
         p = geometry_msgs.msg.Point(x = tran_list[0], y = tran_list[1], z = tran_list[2])
         grasp_pose_msg = geometry_msgs.msg.Pose(orientation = q, position = p)
-        g.append(graspit_msgs.msg.Grasp(epsilon_quality = epsilon_quality, pre_grasp_pose = grasp_pose_msg, final_grasp_pose = grasp_pose_msg, pre_grasp_dof = dof_list, final_grasp_dof = dof_list, secondary_qualities = [0.0]))
+        g.append(graspit_msgs.msg.Grasp(object_name = object_name, epsilon_quality = epsilon_quality, pre_grasp_pose = grasp_pose_msg, final_grasp_pose = grasp_pose_msg, pre_grasp_dof = dof_list, final_grasp_dof = dof_list, secondary_qualities = [0.0]))
         
     return g
         
@@ -111,11 +112,10 @@ class GraspitExecutionListener( object ):
         self.analyze_grasp_pub = rospy.Publisher('/graspit/analyze_grasps', graspit_msgs.msg.Grasp)
         
         #self.target_subscriber = rospy.Subscriber('/graspit/target_name', std_msgs.msg.String, self.set_target)
-        self.object_subscriber = rospy.Subscriber('/graspit/object_name', graspit_msgs.msg.ObjectInfo, self.add_object)
+        self.object_subscriber = rospy.Subscriber('/graspit/scene_info', graspit_msgs.msg.SceneInfo, self.add_scene)
         self.clear_objects_subscriber = rospy.Subscriber('/graspit/remove_objects', std_msgs.msg.String, self.clear_objects)
         self.analysis_results_subsciber = rospy.Subscriber("/graspit/analyze_grasps_results", graspit_msgs.msg.GraspStatus, self.grasp_test_results)
         self.object_recognition_pub = rospy.Publisher('/graspit/refresh_models', std_msgs.msg.Empty)
-        self.target_name_pub = rospy.Publisher('/graspit/target_name', std_msgs.msg.String)
         self.transform_listener = tf.TransformListener()
         self.error_error_subscriber = rospy.Subscriber("/graspit/status", graspit_msgs.msg.GraspStatus, self.send_error)
         self.target_name = ""
@@ -192,18 +192,11 @@ class GraspitExecutionListener( object ):
         
         self.object_recognition_pub.publish()
 
-    def set_target(self, msg):
-        self.target_name = msg.data
-        self.graspit_commander.set_planner_target(self.target_name)
-        if not self.try_get_transform():
-            print "Unable to get transform"
-        #else:
-            #self.graspit_commander.set_camera_origin(np.linalg.inv(self.target_transform)[0:3,3])
 
-    def add_object(self, msg):
-        model_name=msg.object_name.split(' ')[0]
-        object_name=msg.object_name.split(' ')[1]        
-        self.graspit_commander.add_object(model_name, object_name, msg.object_pose)
+    def add_scene(self, scene_msg):
+        self.graspit_commander.clear_objects("ALL")
+        for obj_msg in scene_msg.objects:            
+            self.graspit_commander.add_object(obj_msg.model_name, obj_msg.object_name, obj_msg.object_pose)
         
     def grasp_test_results(self, msg):
         grasp_status = msg.grasp_status
@@ -240,17 +233,6 @@ class GraspitExecutionListener( object ):
                 words = line.split(' ')
                 if words[0] == "runObjectRecognition":
                     self.run_object_recognition()
-                    #self.clear_objects(std_msgs.msg.String('blah'))
-                    #self.target_name = ""
-                    #self.target_name_pub.publish(self.target_name)
-                    #self.try_get_transform()
-                    
-
-                elif words[0] == 'setTarget' and len(words) > 1:
-                    self.target_name = words[1].rstrip('\n')
-                    self.target_name_pub.publish(self.target_name)
-                    if not self.try_get_transform():                
-                        print "Unable to get transform"
                     
 
                 elif words[0] == 'analyzeGrasp':
@@ -281,9 +263,11 @@ class GraspitExecutionListener( object ):
         
         try:
             received_string = self.socket.recv(4096)
-        except Exception as e:            
-            if isinstance(e, socket.timeout):
-                return [],[]
+        except Exception as e:
+            self.socket = []
+            self.try_reconnect()
+            return [],[]
+        
         
         if received_string == "":
             print "trying to reconnect"
@@ -322,7 +306,10 @@ if __name__ == '__main__':
          while not rospy.is_shutdown():
              g.try_read()
              if send_cloud:
-                 g.update_object_pointcloud()
+                 try:
+                     g.update_object_pointcloud()
+                 except Exception as e:
+                     print e
 
              loop.sleep()
      except rospy.ROSInterruptException: pass
