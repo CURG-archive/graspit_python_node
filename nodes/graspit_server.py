@@ -78,7 +78,7 @@ def parse_unstructured_grasp_string(grasp_string):
         #split into unstructured list
         gs_list = grasp.split(' ')
         #extract grasp fields
-        object_name = gs[0]
+        object_name = gs_list[0]
         quat_list = [float(x) for x in gs_list[1:5]]
         tran_list = [float(x) for x in gs_list[5:8]]
     
