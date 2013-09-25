@@ -87,7 +87,7 @@ def parse_unstructured_grasp_string(grasp_string):
         volume_quality = float(gs_list[13])
         quality_list = []
         if len(gs_list) > 14:
-            quality_list = [float(x) for x in gs_list[14:]]
+            quality_list = [float(x) for x in gs_list[14:] if x is not '']
 
     
         q = geometry_msgs.msg.Quaternion(w = quat_list[0], x = quat_list[1], y = quat_list[2], z = quat_list[3])
@@ -110,11 +110,14 @@ class GraspitExecutionListener( object ):
             print "initial connection failed. Reconnecting \n"
         self.grasp_pub = rospy.Publisher('/graspit/grasps', graspit_msgs.msg.Grasp)
         self.analyze_grasp_pub = rospy.Publisher('/graspit/analyze_grasps', graspit_msgs.msg.Grasp)
+        self.analyze_approach_pub = rospy.Publisher('/graspit/analyze_demo_pose', graspit_msgs.msg.Grasp)
         
         #self.target_subscriber = rospy.Subscriber('/graspit/target_name', std_msgs.msg.String, self.set_target)
         self.object_subscriber = rospy.Subscriber('/graspit/scene_info', graspit_msgs.msg.SceneInfo, self.add_scene)
         self.clear_objects_subscriber = rospy.Subscriber('/graspit/remove_objects', std_msgs.msg.String, self.clear_objects)
         self.analysis_results_subsciber = rospy.Subscriber("/graspit/analyze_grasps_results", graspit_msgs.msg.GraspStatus, self.grasp_test_results)
+        self.pose_results_subsciber = rospy.Subscriber("/graspit/analyze_demo_pose_results", std_msgs.msg.Float32, self.pose_test_results)
+        
         self.object_recognition_pub = rospy.Publisher('/graspit/refresh_models', std_msgs.msg.Empty)
         self.transform_listener = tf.TransformListener()
         self.error_error_subscriber = rospy.Subscriber("/graspit/status", graspit_msgs.msg.GraspStatus, self.send_error)
@@ -206,6 +209,14 @@ class GraspitExecutionListener( object ):
         
         self.graspit_commander.set_grasp_attribute(msg.grasp_identifier, 'testResult', -grasp_status)
 
+    def pose_test_results(self, msg):
+        if msg.data == 0:
+            redness = 1
+        else:
+            redness = 0
+            
+        self.graspit_commander.set_robot_color(0,[redness, 0, 0])
+
 
     def send_error(self, msg):
         self.graspit_commander.send_grasp_failed(0, msg.grasp_status, msg.status_msg)
@@ -241,16 +252,24 @@ class GraspitExecutionListener( object ):
                     grasp_msg.secondary_qualities[0] = float(words[1])
                     self.analyze_grasp_pub.publish(grasp_msg)
                     result = grasp_msg
-                
+
+                elif words[0] == 'analyzeApproachDirection':
+                    grasp_line = ' '.join(words[1:])                    
+                    grasp_msg = self.parse_grasp_string(grasp_line, False)[0]                    
+                    self.analyze_approach_pub.publish(grasp_msg)
+                    result = grasp_msg
+
                 elif words[0] == "doGrasp":
                     grasp_msg = self.parse_grasp_string(' '.join(words[1:]), False)[0]
                     self.grasp_pub.publish(grasp_msg)
                     result = grasp_msg
+                    
                 else:
                     print "unknown line %s"%(line)
                 return [words[0], result]
             except Exception as e:                
                 print "error parsing line: %s"%(line)
+                print e
                 self.remainder_string = line
                 return [],[]
         received_string = self.remainder_string + received_string
