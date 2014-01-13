@@ -1,0 +1,22 @@
+<package>
+  <name>graspit_python_node</name>
+   <version>1.0.0</version>
+  <description>graspit_python_node</description>
+  <maintainer email="jvarley@cs.columbia.edu">Jake Varley</maintainer>
+  <author>Darpa Public Use</author>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/graspit_python_node</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>rospy</build_depend>
+  <build_depend>graspit_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>tf_conversions</build_depend>
+  <build_depend>trajectory_planner</build_depend>
+
+  
+</package>
+
+
