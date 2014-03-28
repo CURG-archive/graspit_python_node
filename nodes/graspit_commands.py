@@ -283,3 +283,9 @@ class graspitManager():
             print "Failed to connect to planner \n"
             
         return result
+
+    def set_robot_color(self, robot_id, color):
+        color_str = ' '.join([str(c) for c in color])
+        command_str = "setRobotColor 1 %d %s \n"%(robot_id, color_str)
+        self.socket.send(command_str)
+        
