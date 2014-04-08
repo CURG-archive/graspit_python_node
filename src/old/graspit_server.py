@@ -333,9 +333,3 @@ if __name__ == '__main__':
              loop.sleep()
      except rospy.ROSInterruptException: pass
     
-            
-
-
-
-
-                        
