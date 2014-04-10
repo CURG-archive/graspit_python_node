@@ -53,12 +53,13 @@ def ros_graspit_run():
                 CameraOriginService,
                 CheckGraspReachabilityService,
                 ExecuteGraspService]
-
+    rospy.init_node('graspit_python_server')
     rpcz_app_manager = RPCZAppManager(server_address, services)
     try:
+        
         rpcz_app_manager.start()
 
-        rospy.init_node('graspit_python_server')
+        rospy.loginfo("starting server")
         loop = rospy.Rate(10)
         rospy.loginfo("server started sucessfully")
         while not rospy.is_shutdown():
@@ -72,6 +73,5 @@ def ros_graspit_run():
         rpcz_app_manager.shutdown()
 
 
-if __name__ == "__main__":
-    rospy.loginfo("starting server")
+if __name__ == "__main__":    
     ros_graspit_run()

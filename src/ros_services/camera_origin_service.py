@@ -13,7 +13,7 @@ import tf
 class CameraOriginService(get_camera_origin_rpcz.CameraOriginService, BaseService):
 
     def __init__(self):
-        super().__init__()
+        super(CameraOriginService,self).__init__()
         self.transform_listener = tf.TransformListener()
 
     def build_response(self, request):
