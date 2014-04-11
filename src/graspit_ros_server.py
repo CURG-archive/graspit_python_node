@@ -3,75 +3,59 @@
 import threading
 
 import rpcz
-from ros_services.recognition_service import RecognitionService
+from ros_services.object_recognition_service import ObjectRecognitionService
 from ros_services.camera_origin_service import CameraOriginService
 from ros_services.check_grasp_reachability_service import CheckGraspReachabilityService
 from ros_services.execute_grasp_service import ExecuteGraspService
 
 import roslib
-roslib.load_manifest( "graspit_python_node" )
 import rospy
-
-
-class RPCZAppManager():
-    def __init__(self, server_address, services):
-        self.app = rpcz.Application()
-        self.appThread = ServerThread(self.app, server_address, services)
-
-    def start(self):
-        self.appThread.start()
-
-    def shutdown(self):
-        print("shutting down server")
-        self.app.terminate()
-        self.appThread.join()
+roslib.load_manifest("graspit_python_node")
 
 
 class ServerThread(threading.Thread):
-    def __init__(self, app, server_address, services):
+    def __init__(self, server_address,services):
         threading.Thread.__init__(self)
-        self.app = app
-        server = rpcz.Server(self.app)
+        self.daemon = True
+
         self.server_address = server_address
-
-        for service in services:
-            server.register_service(service(), service.__name__)
-
-        server.bind(server_address)
+        self.services = services
 
     def run(self):
-        print
-        "Serving requests at: " + self.server_address
-        self.app.run()
+        app = rpcz.Application()
+        server = rpcz.Server(app)
+
+        for service in self.services:
+            rospy.loginfo("registering service: " + str(service.__name__) + " as rpcz service: " + str(service.DESCRIPTOR.name))
+            server.register_service(service(), service.DESCRIPTOR.name)
+
+        server.bind(self.server_address)
+        rospy.loginfo("Serving requests on port " + str(self.server_address))
+        app.run()
 
 
+def run_graspit_ros_node(server_address,services):
 
-def ros_graspit_run():
+    rospy.init_node('graspit_python_server')
+
+    rpcz_server = ServerThread(server_address, services)
+    rpcz_server.start()
+
+    loop = rospy.Rate(10)
+    while not rospy.is_shutdown():
+        try:
+            loop.sleep()
+        except (KeyboardInterrupt, SystemExit):
+            break
+    rpcz_server.join(1)
+
+
+if __name__ == "__main__":
     server_address = "tcp://*:5561"
 
-    services = [RecognitionService,
+    services = [ObjectRecognitionService,
                 CameraOriginService,
                 CheckGraspReachabilityService,
                 ExecuteGraspService]
-    rospy.init_node('graspit_python_server')
-    rpcz_app_manager = RPCZAppManager(server_address, services)
-    try:
-        
-        rpcz_app_manager.start()
 
-        rospy.loginfo("starting server")
-        loop = rospy.Rate(10)
-        rospy.loginfo("server started sucessfully")
-        while not rospy.is_shutdown():
-            try:
-                loop.sleep()
-            except (KeyboardInterrupt, SystemExit):
-                break
-
-        rpcz_app_manager.shutdown()
-    except:
-        rpcz_app_manager.shutdown()
-
-
-if __name__ == "__main__":    
-    ros_graspit_run()
+    run_graspit_ros_node(server_address,services)

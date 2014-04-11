@@ -10,13 +10,13 @@ import rospy
 from model_rec2.srv import *
 
 
-class RecognitionService(run_recognition_rpcz.ObjectRecognitionService, BaseService):
+class ObjectRecognitionService(run_recognition_rpcz.ObjectRecognitionService, BaseService):
 
     def __init__(self):
-        super(RecognitionService, self).__init__()
+        super(ObjectRecognitionService, self).__init__()
         self.object_recognition_pub = rospy.Publisher('/graspit/refresh_models', std_msgs.msg.Empty)
 
-        rospy.wait_for_service('recognize_objects')
+        rospy.wait_for_service('recognize_objects', timeout=5)
         self.recognize_objects_proxy = rospy.ServiceProxy('recognize_objects', FindObjects)
 
     def build_response(self,request):

@@ -12,11 +12,13 @@ import tf
 
 class CameraOriginService(get_camera_origin_rpcz.CameraOriginService, BaseService):
 
-    def __init__(self):
-        super(CameraOriginService,self).__init__()
-        self.transform_listener = tf.TransformListener()
+    # def __init__(self):
+    #     super(CameraOriginService, self).__init__()
+    #     self.transform_listener = tf.TransformListener()
+    #     rospy.loginfo("CameraOriginService inited")
 
     def build_response(self, request):
+        rospy.loginfo("CameraOriginService build_response")
         response = get_camera_origin_pb2.CameraOriginResponse()
 
         world_transform = self.get_world_transform()

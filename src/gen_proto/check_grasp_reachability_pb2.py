@@ -7,12 +7,12 @@ from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 
-import grasp_pb2
+import geometry_msgs_pb2
 
 DESCRIPTOR = descriptor.FileDescriptor(
   name='check_grasp_reachability.proto',
   package='graspit_rpcz',
-  serialized_pb='\n\x1e\x63heck_grasp_reachability.proto\x12\x0cgraspit_rpcz\x1a\x0bgrasp.proto\"F\n\x1d\x43heckGraspReachabilityRequest\x12%\n\x05grasp\x18\x01 \x02(\x0b\x32\x16.graspit_rpcz.GraspMsg\"F\n\x1e\x43heckGraspReachabilityResponse\x12\x0f\n\x07graspId\x18\x01 \x02(\x05\x12\x13\n\x0bgraspStatus\x18\x02 \x02(\x05\x32\x81\x01\n\x1d\x43heckGraspReachabilityService\x12`\n\x03run\x12+.graspit_rpcz.CheckGraspReachabilityRequest\x1a,.graspit_rpcz.CheckGraspReachabilityResponse')
+  serialized_pb='\n\x1e\x63heck_grasp_reachability.proto\x12\x0cgraspit_rpcz\x1a\x13geometry_msgs.proto\"?\n\x1d\x43heckGraspReachabilityRequest\x12\x1e\n\x0f\x66inal_hand_pose\x18\x01 \x02(\x0b\x32\x05.Pose\"F\n\x1e\x43heckGraspReachabilityResponse\x12\x0f\n\x07graspId\x18\x01 \x02(\x05\x12\x13\n\x0bgraspStatus\x18\x02 \x02(\x05\x32\x81\x01\n\x1d\x43heckGraspReachabilityService\x12`\n\x03run\x12+.graspit_rpcz.CheckGraspReachabilityRequest\x1a,.graspit_rpcz.CheckGraspReachabilityResponse')
 
 
 
@@ -25,7 +25,7 @@ _CHECKGRASPREACHABILITYREQUEST = descriptor.Descriptor(
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
-      name='grasp', full_name='graspit_rpcz.CheckGraspReachabilityRequest.grasp', index=0,
+      name='final_hand_pose', full_name='graspit_rpcz.CheckGraspReachabilityRequest.final_hand_pose', index=0,
       number=1, type=11, cpp_type=10, label=2,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -40,8 +40,8 @@ _CHECKGRASPREACHABILITYREQUEST = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=61,
-  serialized_end=131,
+  serialized_start=69,
+  serialized_end=132,
 )
 
 
@@ -75,11 +75,11 @@ _CHECKGRASPREACHABILITYRESPONSE = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=133,
-  serialized_end=203,
+  serialized_start=134,
+  serialized_end=204,
 )
 
-_CHECKGRASPREACHABILITYREQUEST.fields_by_name['grasp'].message_type = grasp_pb2._GRASPMSG
+_CHECKGRASPREACHABILITYREQUEST.fields_by_name['final_hand_pose'].message_type = geometry_msgs_pb2._POSE
 DESCRIPTOR.message_types_by_name['CheckGraspReachabilityRequest'] = _CHECKGRASPREACHABILITYREQUEST
 DESCRIPTOR.message_types_by_name['CheckGraspReachabilityResponse'] = _CHECKGRASPREACHABILITYRESPONSE
 

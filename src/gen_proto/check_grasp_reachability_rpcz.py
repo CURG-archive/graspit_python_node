@@ -8,7 +8,7 @@ from google.protobuf import descriptor_pb2
 
 
 import check_grasp_reachability_pb2
-import grasp_pb2
+import geometry_msgs_pb2
 
 
 _CHECKGRASPREACHABILITYSERVICE = descriptor.ServiceDescriptor(
@@ -17,8 +17,8 @@ _CHECKGRASPREACHABILITYSERVICE = descriptor.ServiceDescriptor(
   file=check_grasp_reachability_pb2.DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=206,
-  serialized_end=335,
+  serialized_start=207,
+  serialized_end=336,
   methods=[
   descriptor.MethodDescriptor(
     name='run',
