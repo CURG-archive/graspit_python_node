@@ -42,7 +42,7 @@ def run_graspit_ros_node(server_address,services):
     rpcz_server.start()
 
     loop = rospy.Rate(10)
-    while not rospy.is_shutdown():
+    while (not rospy.is_shutdown()) and rpcz_server.is_alive():
         try:
             loop.sleep()
         except (KeyboardInterrupt, SystemExit):

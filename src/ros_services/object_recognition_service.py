@@ -22,7 +22,7 @@ class ObjectRecognitionService(run_recognition_rpcz.ObjectRecognitionService, Ba
     def build_response(self,request):
 
         response = run_recognition_pb2.ObjectRecognitionResponse()
-
+        return response
         find_objects_response = self.recognize_objects_proxy()
 
         for i in range(len(find_objects_response.object_name)):
