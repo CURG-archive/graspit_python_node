@@ -10,13 +10,14 @@ import rospy
 
 class ExecuteGraspService(execute_grasp_rpcz.ExecuteGraspService, BaseService):
 
-    def __init__(self):
-        super(ExecuteGraspService, self).__init__()
-        self.grasp_pub = rospy.Publisher('/graspit/grasps', graspit_msgs.msg.Grasp)
+    def __init__(self, ros_interface):
+        super(ExecuteGraspService, self).__init__(ros_interface)
 
     def build_response(self, request):
         grasp_msg = self.build_grasp_msg(request)
-        self.grasp_pub.publish(grasp_msg)
+
+        self.ros_interface.handle_execute_grasp_request(grasp_msg)
+
         return execute_grasp_pb2.ExecuteGraspResponse()
 
     def build_grasp_msg(self, request):

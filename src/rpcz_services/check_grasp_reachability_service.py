@@ -10,10 +10,9 @@ import rospy
 
 class CheckGraspReachabilityService(check_grasp_reachability_rpcz.CheckGraspReachabilityService, BaseService):
 
-    def __init__(self):
-        super(CheckGraspReachabilityService, self).__init__()
-        #rospy.wait_for_service('moveit_trajectory_planner/check_reachability')
-        #self.check_reachability_proxy = rospy.ServiceProxy('moveit_trajectory_planner/check_reachability', LocationInfo)
+    def __init__(self, ros_interface):
+        super(CheckGraspReachabilityService, self).__init__(ros_interface)
+
 
     def build_response(self, request):
 
@@ -21,7 +20,7 @@ class CheckGraspReachabilityService(check_grasp_reachability_rpcz.CheckGraspReac
 
         proxy_request = self.convert_proto_to_ros_service_request(request)
 
-        check_reachability_ros_response = self.check_reachability_proxy(proxy_request)
+        check_reachability_ros_response = self.ros_interface.handle_check_reachability_request(proxy_request)
 
         response.graspId = request.grasp.graspId
         response.graspStatus = check_reachability_ros_response.isPossible

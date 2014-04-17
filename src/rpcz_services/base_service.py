@@ -3,8 +3,9 @@ import rospy
 
 
 class BaseService(object):
-    def __init__(self, *args):
+    def __init__(self, ros_interface):
         self.count = 0
+        self.ros_interface = ros_interface
 
     def run(self, request, reply):
         rospy.loginfo("received request")
