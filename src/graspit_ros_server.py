@@ -30,6 +30,7 @@ class ServerThread(threading.Thread):
 
         ros_interface = ROSInterface()
         for service in self.services:
+            print "registering service: " + str(service.__name__) + " as rpcz service: " + str(service.DESCRIPTOR.name)
             rospy.loginfo("registering service: " + str(service.__name__) + " as rpcz service: " + str(service.DESCRIPTOR.name))
             server.register_service(service(ros_interface), service.DESCRIPTOR.name)
 
@@ -40,8 +41,8 @@ class ServerThread(threading.Thread):
 
 def run_graspit_ros_node(server_address,services):
 
-    rospy.init_node('graspit_python_server')
-
+    rospy.init_node('graspit_ros_server')
+    rospy.loginfo("launching graspit_ros_server!!!!!!!!!!!!!!")
     rpcz_server = ServerThread(server_address, services)
     rpcz_server.start()
 
@@ -55,6 +56,7 @@ def run_graspit_ros_node(server_address,services):
 
 
 if __name__ == "__main__":
+
     server_address = "tcp://*:5561"
 
     services = [ObjectRecognitionService,

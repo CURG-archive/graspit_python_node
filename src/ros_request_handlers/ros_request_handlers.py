@@ -59,7 +59,7 @@ class ObjectRecognitionRequestHandler():
 class CheckReachabilityRequestHandler():
 
     def __init__(self):
-        rospy.wait_for_service('moveit_trajectory_planner/check_reachability')
+        rospy.wait_for_service('moveit_trajectory_planner/check_reachability', timeout=5)
         self.check_reachability_proxy = rospy.ServiceProxy('moveit_trajectory_planner/check_reachability', LocationInfo)
 
     def handle(self, request):

@@ -12,7 +12,7 @@ import geometry_msgs_pb2
 DESCRIPTOR = descriptor.FileDescriptor(
   name='get_camera_origin.proto',
   package='graspit_rpcz',
-  serialized_pb='\n\x17get_camera_origin.proto\x12\x0cgraspit_rpcz\x1a\x13geometry_msgs.proto\"\x15\n\x13\x43\x61meraOriginRequest\"3\n\x14\x43\x61meraOriginResponse\x12\x1b\n\x0c\x63\x61meraOrigin\x18\x01 \x02(\x0b\x32\x05.Pose2c\n\x13\x43\x61meraOriginService\x12L\n\x03run\x12!.graspit_rpcz.CameraOriginRequest\x1a\".graspit_rpcz.CameraOriginResponse')
+  serialized_pb='\n\x17get_camera_origin.proto\x12\x0cgraspit_rpcz\x1a\x13geometry_msgs.proto\"\x15\n\x13\x43\x61meraOriginRequest\"3\n\x14\x43\x61meraOriginResponse\x12\x1b\n\x0c\x63\x61meraOrigin\x18\x01 \x02(\x0b\x32\x05.Pose2o\n\x13\x43\x61meraOriginService\x12X\n\x0fGetCameraOrigin\x12!.graspit_rpcz.CameraOriginRequest\x1a\".graspit_rpcz.CameraOriginResponse')
 
 
 

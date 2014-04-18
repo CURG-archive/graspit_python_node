@@ -8,9 +8,10 @@ class BaseService(object):
         self.ros_interface = ros_interface
 
     def run(self, request, reply):
-        rospy.loginfo("received request")
+        rospy.loginfo("received request: " + str(request))
         rospy.loginfo("received " + self.__class__.__name__+" request " + str(self.count))
         self.count += 1
         response = self.build_response(request)
         reply.send(response)
+        rospy.loginfo("sending response: " + str(response))
 
