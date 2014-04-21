@@ -15,23 +15,23 @@ class ObjectRecognitionService(run_recognition_rpcz.ObjectRecognitionService, Ba
     def __init__(self, ros_interface):
         super(ObjectRecognitionService, self).__init__(ros_interface)
 
-    def build_response(self,request):
+    def build_response(self, request):
 
         response = run_recognition_pb2.ObjectRecognitionResponse()
 
-        find_objects_response = self.ros_interface.handle_object_recognition_request()
+        get_object_info_response = self.ros_interface.handle_object_recognition_request()
 
-        for i in range(len(find_objects_response.object_name)):
+        for i in range(len(get_object_info_response.object_info)):
 
             response.foundObjects.add()
 
-            response.foundObjects[i].name = find_objects_response.object_name[i]
-            response.foundObjects[i].pose.position.x = find_objects_response.object_pose[i].position.x
-            response.foundObjects[i].pose.position.y = find_objects_response.object_pose[i].position.y
-            response.foundObjects[i].pose.position.z = find_objects_response.object_pose[i].position.z
-            response.foundObjects[i].pose.orientation.w = find_objects_response.object_pose[i].orientation.w
-            response.foundObjects[i].pose.orientation.x = find_objects_response.object_pose[i].orientation.x
-            response.foundObjects[i].pose.orientation.y = find_objects_response.object_pose[i].orientation.y
-            response.foundObjects[i].pose.orientation.z = find_objects_response.object_pose[i].orientation.z
+            response.foundObjects[i].name = get_object_info_response.object_info[i].object_name
+            response.foundObjects[i].pose.position.x = get_object_info_response.object_info[i].object_pose.position.x
+            response.foundObjects[i].pose.position.y = get_object_info_response.object_info[i].object_pose.position.y
+            response.foundObjects[i].pose.position.z = get_object_info_response.object_info[i].object_pose.position.z
+            response.foundObjects[i].pose.orientation.w = get_object_info_response.object_info[i].object_pose.orientation.w
+            response.foundObjects[i].pose.orientation.x = get_object_info_response.object_info[i].object_pose.orientation.x
+            response.foundObjects[i].pose.orientation.y = get_object_info_response.object_info[i].object_pose.orientation.y
+            response.foundObjects[i].pose.orientation.z = get_object_info_response.object_info[i].object_pose.orientation.z
 
         return response
