@@ -23,10 +23,15 @@ class ObjectRecognitionService(run_recognition_rpcz.ObjectRecognitionService, Ba
 
         for i in range(len(find_objects_response.object_name)):
 
-            graspable_object = graspable_object_pb2.GraspableObject()
-            graspable_object.name = find_objects_response.object_name[i]
-            graspable_object.pose = find_objects_response.object_pose[i]
+            response.foundObjects.add()
 
-            response.foundObjects.add(graspable_object)
+            response.foundObjects[i].name = find_objects_response.object_name[i]
+            response.foundObjects[i].pose.position.x = find_objects_response.object_pose[i].position.x
+            response.foundObjects[i].pose.position.y = find_objects_response.object_pose[i].position.y
+            response.foundObjects[i].pose.position.z = find_objects_response.object_pose[i].position.z
+            response.foundObjects[i].pose.orientation.w = find_objects_response.object_pose[i].orientation.w
+            response.foundObjects[i].pose.orientation.x = find_objects_response.object_pose[i].orientation.x
+            response.foundObjects[i].pose.orientation.y = find_objects_response.object_pose[i].orientation.y
+            response.foundObjects[i].pose.orientation.z = find_objects_response.object_pose[i].orientation.z
 
         return response

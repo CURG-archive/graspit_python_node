@@ -9,7 +9,6 @@ from moveit_trajectory_planner.srv import *
 import graspit_msgs.msg
 import rospy
 
-
 class CheckGraspReachabilityService(check_grasp_reachability_rpcz.CheckGraspReachabilityService, BaseService):
 
     def __init__(self, ros_interface):
@@ -17,7 +16,7 @@ class CheckGraspReachabilityService(check_grasp_reachability_rpcz.CheckGraspReac
 
 
     def build_response(self, request):
-
+        #self.save_proto_msg_for_testing(request)
         response = check_grasp_reachability_pb2.CheckGraspReachabilityResponse()
 
         proxy_request = self.build_grasp_msg(request)
@@ -58,3 +57,8 @@ class CheckGraspReachabilityService(check_grasp_reachability_rpcz.CheckGraspReac
 
         grasp_msg.secondary_qualities = [0.0]
         return grasp_msg
+
+    def save_proto_msg_for_testing(self,proto_request):
+        f = open("grasp_proto_" + str(proto_request.grasp.graspId) + str(".saved_proto"), "wb")
+        f.write(proto_request.SerializeToString())
+        f.close()

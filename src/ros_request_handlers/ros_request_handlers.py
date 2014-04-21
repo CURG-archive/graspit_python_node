@@ -47,8 +47,6 @@ class CameraOriginRequestHandler():
 class ObjectRecognitionRequestHandler():
 
     def __init__(self):
-        self.object_recognition_pub = rospy.Publisher('/graspit/refresh_models', std_msgs.msg.Empty)
-
         rospy.wait_for_service('recognize_objects', timeout=5)
         self.recognize_objects_proxy = rospy.ServiceProxy('recognize_objects', FindObjects)
 
