@@ -67,8 +67,8 @@ class CheckReachabilityRequestHandler():
         rospy.wait_for_service('moveit_trajectory_planner/check_reachability', timeout=5)
         self.check_reachability_proxy = rospy.ServiceProxy('moveit_trajectory_planner/check_reachability', LocationInfo)
 
-    def handle(self, request):
-        check_reachability_ros_response = self.check_reachability_proxy(request)
+    def handle(self, ros_request):
+        check_reachability_ros_response = self.check_reachability_proxy(ros_request)
         return check_reachability_ros_response
 
 
@@ -77,5 +77,5 @@ class ExecuteGraspRequestHandler():
     def __init__(self):
         self.grasp_pub = rospy.Publisher('/graspit/grasps', graspit_msgs.msg.Grasp)
 
-    def handle(self, grasp_msg):
-        self.grasp_pub.publish(grasp_msg)
+    def handle(self, ros_grasp_msg):
+        self.grasp_pub.publish(ros_grasp_msg)
