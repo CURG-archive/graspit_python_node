@@ -32,6 +32,6 @@ class CameraOriginService(get_camera_origin_rpcz.CameraOriginService, BaseServic
             response.cameraOrigin.orientation.w = 0
 
 
-        utils.save_rpcz(response, "camera_origin_response.saved_proto")
+        #utils.save_rpcz(response, "camera_origin_response.saved_proto")
 
         return response
