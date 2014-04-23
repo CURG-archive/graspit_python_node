@@ -22,9 +22,9 @@ class CameraOriginService(get_camera_origin_rpcz.CameraOriginService, BaseServic
 
         if camera_origin != None :
             rospy.loginfo("CameraOriginService building response")
-            response.cameraOrigin.position.x = camera_origin[0]
-            response.cameraOrigin.position.y = camera_origin[1]
-            response.cameraOrigin.position.z = camera_origin[2]
+            response.cameraOrigin.position.x = camera_origin[0]*1000
+            response.cameraOrigin.position.y = camera_origin[1]*1000
+            response.cameraOrigin.position.z = camera_origin[2]*1000
 
             response.cameraOrigin.orientation.x = 0
             response.cameraOrigin.orientation.y = 0
