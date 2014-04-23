@@ -15,3 +15,4 @@ class BaseService(object):
         reply.send(response)
         rospy.loginfo("sending response: " + str(response))
 
+

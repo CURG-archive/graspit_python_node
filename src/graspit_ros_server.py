@@ -11,7 +11,7 @@ from rpcz_services.execute_grasp_service import ExecuteGraspService
 import roslib
 import rospy
 
-from ros_interface import ROSInterface
+from ros_request_handlers.ros_interface import ROSInterface
 
 roslib.load_manifest("graspit_python_node")
 
@@ -28,20 +28,18 @@ class ServerThread(threading.Thread):
         app = rpcz.Application()
         server = rpcz.Server(app)
 
-        ros_interface = ROSInterface()
         for service in self.services:
-            print "registering service: " + str(service.__name__) + " as rpcz service: " + str(service.DESCRIPTOR.name)
-            rospy.loginfo("registering service: " + str(service.__name__) + " as rpcz service: " + str(service.DESCRIPTOR.name))
-            server.register_service(service(ros_interface), service.DESCRIPTOR.name)
+            print "registering service: " + str(service.__class__.__name__) + " as rpcz service: " + str(service.DESCRIPTOR.name)
+            rospy.loginfo("registering service: " + str(service.__class__.__name__) + " as rpcz service: " + str(service.DESCRIPTOR.name))
+            server.register_service(service, service.DESCRIPTOR.name)
 
         server.bind(self.server_address)
         rospy.loginfo("Serving requests on port " + str(self.server_address))
         app.run()
 
 
-def run_graspit_ros_node(server_address,services):
+def run_graspit_ros_node(server_address, services):
 
-    rospy.init_node('graspit_ros_server')
     rospy.loginfo("launching graspit_ros_server!!!!!!!!!!!!!!")
     rpcz_server = ServerThread(server_address, services)
     rpcz_server.start()
@@ -56,12 +54,12 @@ def run_graspit_ros_node(server_address,services):
 
 
 if __name__ == "__main__":
-
+    rospy.init_node('graspit_ros_server')
     server_address = "tcp://*:5561"
-
-    services = [ObjectRecognitionService,
-                CameraOriginService,
-                CheckGraspReachabilityService,
-                ExecuteGraspService]
+    ros_interface = ROSInterface()
+    services = [ObjectRecognitionService(ros_interface),
+                CameraOriginService(ros_interface),
+                CheckGraspReachabilityService(ros_interface),
+                ExecuteGraspService(ros_interface)]
 
     run_graspit_ros_node(server_address,services)

@@ -26,22 +26,27 @@ class CameraOriginRequestHandler():
         self._transform_listener = tf.TransformListener()
 
     def handle(self):
+
         world_transform = self._get_world_transform()
 
         camera_origin = None
 
-        if world_transform:
+        rospy.loginfo("world transform: " + str(world_transform))
+
+        if world_transform != None:
             camera_origin = np.linalg.inv(world_transform)[0:3, 3]
 
+        rospy.loginfo("camera_origin: " + str(camera_origin))
         return camera_origin
 
     def _get_world_transform(self):
         try:
             self._transform_listener.waitForTransform("/camera_rgb_optical_frame", "/world", rospy.Time(0), rospy.Duration(10))
         except:
+            rospy.logwarn("Failed to get world transform for: " + self.__class__.__name())
             return None
         world_transform = tf_conversions.toMatrix(tf_conversions.fromTf(
-            self.transform_listener.lookupTransform(
+            self._transform_listener.lookupTransform(
                 "/camera_rgb_optical_frame", '/world', rospy.Time(0))))
         return world_transform
 

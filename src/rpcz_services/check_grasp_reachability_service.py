@@ -4,10 +4,6 @@ from gen_proto import check_grasp_reachability_rpcz
 
 from base_service import BaseService
 
-from moveit_trajectory_planner.srv import *
-
-import graspit_msgs.msg
-import rospy
 import utils
 
 class CheckGraspReachabilityService(check_grasp_reachability_rpcz.CheckGraspReachabilityService, BaseService):
@@ -17,7 +13,7 @@ class CheckGraspReachabilityService(check_grasp_reachability_rpcz.CheckGraspReac
 
 
     def build_response(self, request):
-        #utils.save_rpcz_request(request, "check_grasp_request" + str(request.grasp.graspId) + str(".saved_proto"))
+        #utils.save_rpcz(request, "check_grasp_request" + str(request.grasp.graspId) + str(".saved_proto"))
         response = check_grasp_reachability_pb2.CheckGraspReachabilityResponse()
 
         proxy_request = utils.build_grasp_msg(request.grasp)

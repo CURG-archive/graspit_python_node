@@ -18,11 +18,11 @@ _CAMERAORIGINSERVICE = descriptor.ServiceDescriptor(
   index=0,
   options=None,
   serialized_start=138,
-  serialized_end=249,
+  serialized_end=237,
   methods=[
   descriptor.MethodDescriptor(
-    name='GetCameraOrigin',
-    full_name='graspit_rpcz.CameraOriginService.GetCameraOrigin',
+    name='run',
+    full_name='graspit_rpcz.CameraOriginService.run',
     index=0,
     containing_service=None,
     input_type=get_camera_origin_pb2._CAMERAORIGINREQUEST,

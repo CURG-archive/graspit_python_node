@@ -1,5 +1,4 @@
 import graspit_msgs.msg
-from gen_proto import grasp_pb2
 import roslib.packages
 
 def build_grasp_msg(rpcz_grasp_msg):
@@ -31,8 +30,8 @@ def build_grasp_msg(rpcz_grasp_msg):
         return ros_grasp_msg
 
 
-def save_rpcz_request(rpcz_request, filename):
-        pkg_path = roslib.packages.get_pkg_dir('mock_graspit') + '/'
+def save_rpcz(rpcz_message, filename):
+        pkg_path = roslib.packages.get_pkg_dir('mock_graspit') + '/saved_proto/'
         f = open(pkg_path + filename, "wb")
-        f.write(rpcz_request.SerializeToString())
+        f.write(rpcz_message.SerializeToString())
         f.close()

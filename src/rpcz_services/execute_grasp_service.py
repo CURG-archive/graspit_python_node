@@ -4,8 +4,6 @@ from gen_proto import execute_grasp_rpcz
 
 from base_service import BaseService
 
-import graspit_msgs.msg
-import rospy
 import utils
 
 
@@ -15,7 +13,7 @@ class ExecuteGraspService(execute_grasp_rpcz.ExecuteGraspService, BaseService):
         super(ExecuteGraspService, self).__init__(ros_interface)
 
     def build_response(self, request):
-        utils.save_rpcz_request(request, "execute_grasp_request" + str(request.grasp.graspId) + str(".saved_proto"))
+        utils.save_rpcz(request, "execute_grasp_request" + str(request.grasp.graspId) + str(".saved_proto"))
         grasp_msg = utils.build_grasp_msg(request.grasp)
 
         self.ros_interface.handle_execute_grasp_request(grasp_msg)

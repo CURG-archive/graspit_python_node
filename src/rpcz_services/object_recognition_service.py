@@ -1,13 +1,10 @@
 
 from gen_proto import run_recognition_pb2
 from gen_proto import run_recognition_rpcz
-from gen_proto import graspable_object_pb2
 
 from base_service import BaseService
 
-import std_msgs
-import rospy
-from model_rec2.srv import *
+import utils
 
 
 class ObjectRecognitionService(run_recognition_rpcz.ObjectRecognitionService, BaseService):
@@ -33,5 +30,7 @@ class ObjectRecognitionService(run_recognition_rpcz.ObjectRecognitionService, Ba
             response.foundObjects[i].pose.orientation.x = get_object_info_response.object_info[i].object_pose.orientation.x
             response.foundObjects[i].pose.orientation.y = get_object_info_response.object_info[i].object_pose.orientation.y
             response.foundObjects[i].pose.orientation.z = get_object_info_response.object_info[i].object_pose.orientation.z
+
+        utils.save_rpcz(response, "object_recognition_response.saved_proto")
 
         return response
