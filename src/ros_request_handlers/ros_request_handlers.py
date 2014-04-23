@@ -57,7 +57,7 @@ class ObjectRecognitionRequestHandler():
         #rospy.wait_for_service('recognize_objects', timeout=5)
         #self.recognize_objects_proxy = rospy.ServiceProxy('recognize_objects', FindObjects)
         rospy.wait_for_service("/get_object_info", timeout=10)
-        rospy.wait_for_service("model_manager/refresh_model_list", timeout=5)
+        rospy.wait_for_service("model_manager/refresh_model_list", timeout=10)
         self.refresh_model_list_service = rospy.ServiceProxy("model_manager/refresh_model_list", Empty)
         self.get_object_info_service = rospy.ServiceProxy("/get_object_info", graspit_msgs.srv.GetObjectInfo)
 
@@ -69,7 +69,7 @@ class ObjectRecognitionRequestHandler():
 class CheckReachabilityRequestHandler():
 
     def __init__(self):
-        rospy.wait_for_service('moveit_trajectory_planner/check_reachability', timeout=5)
+        rospy.wait_for_service('moveit_trajectory_planner/check_reachability', timeout=10)
         self.check_reachability_proxy = rospy.ServiceProxy('moveit_trajectory_planner/check_reachability', LocationInfo)
 
     def handle(self, ros_request):
