@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 import graspit_ros_server
 from rpcz_services.mock_rpcz_services import *
