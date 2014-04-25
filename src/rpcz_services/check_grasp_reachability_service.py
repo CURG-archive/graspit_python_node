@@ -11,9 +11,8 @@ class CheckGraspReachabilityService(check_grasp_reachability_rpcz.CheckGraspReac
     def __init__(self, ros_interface):
         super(CheckGraspReachabilityService, self).__init__(ros_interface)
 
-
     def build_response(self, request):
-        #utils.save_rpcz(request, "check_grasp_request" + str(request.grasp.graspId) + str(".saved_proto"))
+
         response = check_grasp_reachability_pb2.CheckGraspReachabilityResponse()
 
         proxy_request = utils.build_grasp_msg(request.grasp)
@@ -22,6 +21,9 @@ class CheckGraspReachabilityService(check_grasp_reachability_rpcz.CheckGraspReac
 
         response.graspId = request.grasp.graspId
         response.graspStatus = check_reachability_ros_response.isPossible
+
+        if not check_reachability_ros_response.isPossible:
+            utils.save_rpcz(request, "invalid_check_grasp_request" + str(request.grasp.graspId) + str(".saved_proto"))
 
         return response
 
