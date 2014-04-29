@@ -1,6 +1,6 @@
 
 from ros_request_handlers import *
-
+import graspit_msgs.srv
 
 class ROSInterface():
 
@@ -11,6 +11,10 @@ class ROSInterface():
         self.execute_grasp_request_handler = ExecuteGraspRequestHandler()
 
     def handle_object_recognition_request(self):
+        """
+
+        :rtype : object graspit_msgs.srv.GetObjectInfoResponse
+        """
         response = self.object_recognition_request_handler.handle()
         return response
 

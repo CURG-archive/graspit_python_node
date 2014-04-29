@@ -23,6 +23,7 @@ class ObjectRecognitionService(run_recognition_rpcz.ObjectRecognitionService, Ba
             response.foundObjects.add()
 
             response.foundObjects[i].name = get_object_info_response.object_info[i].object_name
+            response.foundObjects[i].model = get_object_info_response.object_info[i].model_name
             response.foundObjects[i].pose.position.x = get_object_info_response.object_info[i].object_pose.position.x
             response.foundObjects[i].pose.position.y = get_object_info_response.object_info[i].object_pose.position.y
             response.foundObjects[i].pose.position.z = get_object_info_response.object_info[i].object_pose.position.z
