@@ -10,7 +10,7 @@ def build_grasp_msg(rpcz_grasp_msg):
             ros_grasp_msg.object_name = rpcz_grasp_msg.object.name
 
         ros_grasp_msg.epsilon_quality = rpcz_grasp_msg.epsilon_quality
-        ros_grasp_msg.grasp_source = rpcz_grasp_msg.graspId
+        ros_grasp_msg.grasp_id = rpcz_grasp_msg.graspId
         ros_grasp_msg.pre_grasp_pose.position.x = rpcz_grasp_msg.pre_grasp_hand_state.hand_pose.position.x/1000
         ros_grasp_msg.pre_grasp_pose.position.y = rpcz_grasp_msg.pre_grasp_hand_state.hand_pose.position.y/1000
         ros_grasp_msg.pre_grasp_pose.position.z = rpcz_grasp_msg.pre_grasp_hand_state.hand_pose.position.z/1000
