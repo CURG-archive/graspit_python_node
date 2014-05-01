@@ -1,25 +1,27 @@
 import socket
 import gen_proto
 import gen_proto.GraspitMessage_pb2
-import struct.pack
-
+import struct
+import rospy
 
 class GraspitProtobufSocket(object):
     def __init__(self, host='localhost', port=4766):
-        self.host=host
+        self.host = host
         self.port = port
         self.socket = socket.socket()
 
+
     def reconnect(self):
         self.socket = socket.socket()
-        self.socket.connect(self.host, self.port)
+        self.socket.connect((self.host, self.port))
 
     def send(self, msg, retry_limit = 1):
         try:
-            self.socket.send(msg)
+            self.socket.sendall(msg)
             return True
         except Exception as e:
-            if self.retry_limit:
+            rospy.logerr("error: " + e.message + str(e))
+            if retry_limit:
                 self.reconnect()
                 return self.send(msg, retry_limit - 1)
             else:
@@ -32,6 +34,7 @@ class GraspitProtobufSocket(object):
         """
 
         assert isinstance(proto_msg, gen_proto.GraspitMessage_pb2.GraspitProtobufMessage)
-        message_str = struct.pack("I%s",proto_msg.ByteSize(),proto_msg.SerializeToString())
-
-        return self.send(message_str)
+        s = proto_msg.SerializeToString()
+        message_struct = struct.pack("<I", len(s)) + s
+        rospy.loginfo("proto_msg.ByteSize(): " + str(len(s)))
+        return self.send(message_struct)
