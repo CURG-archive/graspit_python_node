@@ -10,6 +10,28 @@ find_package(catkin REQUIRED)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
+if(1)
+include(FindProtobuf)
+find_package(Protobuf REQUIRED)
+set(ProtoFiles Drawable GraspitMessage Renderable)
+set(ProtoInputDir ${PROJECT_SOURCE_DIR}/graspit_protobuf_msgs)
+set(ProtoOutputDir ${PROJECT_SOURCE_DIR}/src/gen_proto)
+
+message("Protofiles: ${ProtoFiles}")
+
+FOREACH(ProtoFile ${ProtoFiles})
+message("protoc -I=${PROJECT_SOURCE_DIR}/graspit_protobuf_msgs --python_out=${ProtoOutputDir} ${ProtoInputDir}/${ProtoFile}.proto")
+add_custom_command(
+    COMMAND protoc -I=${PROJECT_SOURCE_DIR}/graspit_protobuf_msgs --python_out=${ProtoOutputDir} ${ProtoInputDir}/${ProtoFile}.proto
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    DEPENDS ${ProtoInputDir}/${ProtoFile}
+    OUTPUT  src/gen_proto/${ProtoFile}_pb2.py
+)
+ENDFOREACH(ProtoFile)
+
+
+
+endif(1)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed

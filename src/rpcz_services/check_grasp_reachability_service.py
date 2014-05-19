@@ -22,8 +22,10 @@ class CheckGraspReachabilityService(check_grasp_reachability_rpcz.CheckGraspReac
         response.graspId = request.grasp.graspId
         response.graspStatus = check_reachability_ros_response.isPossible
 
-        if not check_reachability_ros_response.isPossible:
-            utils.save_rpcz(request, "invalid_check_grasp_request" + str(request.grasp.graspId) + str(".saved_proto"))
+        # if check_reachability_ros_response.isPossible:
+        #     utils.save_rpcz(request, "valid_check_grasp_request" + str(request.grasp.graspId) + str(".saved_proto"))
+        # else:
+        #     utils.save_rpcz(request, "invalid_check_grasp_request" + str(request.grasp.graspId) + str(".saved_proto"))
 
         return response
 

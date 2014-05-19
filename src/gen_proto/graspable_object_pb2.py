@@ -12,7 +12,7 @@ import geometry_msgs_pb2
 DESCRIPTOR = descriptor.FileDescriptor(
   name='graspable_object.proto',
   package='',
-  serialized_pb='\n\x16graspable_object.proto\x1a\x13geometry_msgs.proto\"4\n\x0fGraspableObject\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\x13\n\x04pose\x18\x02 \x02(\x0b\x32\x05.Pose')
+  serialized_pb='\n\x16graspable_object.proto\x1a\x13geometry_msgs.proto\"C\n\x0fGraspableObject\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\r\n\x05model\x18\x02 \x02(\t\x12\x13\n\x04pose\x18\x03 \x02(\x0b\x32\x05.Pose')
 
 
 
@@ -32,8 +32,15 @@ _GRASPABLEOBJECT = descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
-      name='pose', full_name='GraspableObject.pose', index=1,
-      number=2, type=11, cpp_type=10, label=2,
+      name='model', full_name='GraspableObject.model', index=1,
+      number=2, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='pose', full_name='GraspableObject.pose', index=2,
+      number=3, type=11, cpp_type=10, label=2,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -48,7 +55,7 @@ _GRASPABLEOBJECT = descriptor.Descriptor(
   is_extendable=False,
   extension_ranges=[],
   serialized_start=47,
-  serialized_end=99,
+  serialized_end=114,
 )
 
 _GRASPABLEOBJECT.fields_by_name['pose'].message_type = geometry_msgs_pb2._POSE
