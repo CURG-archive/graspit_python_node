@@ -13,14 +13,20 @@ class GraspitProtobufSocket(object):
 
     def reconnect(self):
         self.socket = socket.socket()
-        self.socket.connect((self.host, self.port))
+        try:
+            self.socket.connect((self.host, self.port))
+        except Exception as e:
+            rospy.loginfo("error: " + e.message + str(e))
+            self.socket = []
 
     def send(self, msg, retry_limit = 1):
         try:
+            if not self.socket:
+                self.reconnect()
             self.socket.sendall(msg)
             return True
         except Exception as e:
-            rospy.logerr("error: " + e.message + str(e))
+            rospy.loginfo("error: " + e.message + str(e))
             if retry_limit:
                 self.reconnect()
                 return self.send(msg, retry_limit - 1)
