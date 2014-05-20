@@ -14,7 +14,7 @@ import rospy
 from ros_request_handlers.ros_interface import ROSInterface
 
 roslib.load_manifest("graspit_python_node")
-
+from bondpy import bondpy
 
 class ServerThread(threading.Thread):
     def __init__(self, server_address,services):
@@ -39,11 +39,11 @@ class ServerThread(threading.Thread):
 
 
 def run_graspit_ros_node(server_address, services):
-
     rospy.loginfo("launching graspit_ros_server!!!!!!!!!!!!!!")
     rpcz_server = ServerThread(server_address, services)
     rpcz_server.start()
-
+    bond = bondpy.Bond("GRASPIT_ROS_SERVER", "test123")
+    bond.start()
     loop = rospy.Rate(10)
     while (not rospy.is_shutdown()) and rpcz_server.is_alive():
         try:
