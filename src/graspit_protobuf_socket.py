@@ -43,4 +43,7 @@ class GraspitProtobufSocket(object):
         s = proto_msg.SerializeToString()
         message_struct = struct.pack("<I", len(s)) + s
         rospy.loginfo("proto_msg.ByteSize(): " + str(len(s)))
-        return self.send(message_struct)
+        result = self.send(message_struct)
+        del s
+        del message_struct
+        return result
