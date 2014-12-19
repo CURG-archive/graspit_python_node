@@ -16,7 +16,7 @@ class GraspitProtobufSocket(object):
         try:
             self.socket.connect((self.host, self.port))
         except Exception as e:
-            rospy.loginfo("error: " + e.message + str(e))
+            rospy.loginfo("host: %s port %i error: "%(self.host, self.port) + e.message + str(e))
             self.socket = []
 
     def send(self, msg, retry_limit = 1):
