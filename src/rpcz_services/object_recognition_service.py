@@ -11,12 +11,15 @@ class ObjectRecognitionService(run_recognition_rpcz.ObjectRecognitionService, Ba
 
     def __init__(self, ros_interface):
         super(ObjectRecognitionService, self).__init__(ros_interface)
+        self.isRetrieval = False
 
     def build_response(self, request):
-
+        print "is retrieval: %i"%(self.isRetrieval)
         response = run_recognition_pb2.ObjectRecognitionResponse()
-
-        get_object_info_response = self.ros_interface.handle_object_recognition_request()
+        if not self.isRetrieval:
+            get_object_info_response = self.ros_interface.handle_object_recognition_request()
+        else:
+            get_object_info_response = self.ros_interface.handle_object_retrieval_request()
 
         for i in range(len(get_object_info_response.object_info)):
 
