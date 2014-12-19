@@ -13,8 +13,8 @@ import numpy
 
 
 class GraspitProtobufSocketNode(object):
-    def __init__(self, point_cloud_topic="/camera/depth_registered/points", graspit_socket=None, downsample_factor=1,
-                skip_msgs=10, graspit_frame='/world'):
+    def __init__(self, point_cloud_topic="/camera/depth_registered/points", graspit_socket=None, downsample_factor=5,
+                skip_msgs=30, graspit_frame='/world'):
         """
         :type point_cloud_topic: str
         :type graspit_socket: graspit_protobuf_socket.GraspitProtobufSocket
@@ -190,7 +190,12 @@ if __name__ == "__main__":
     rospy.init_node('graspit_protobuf_socket')
 
     try:
-        graspit_protobuf_socket_node = GraspitProtobufSocketNode()
+        point_cloud_topic = rospy.get_param('graspit_point_cloud_topic', '/camera/depth_registered/points')
+        graspit_url = rospy.get_param('~graspit_url','localhost')
+        print "Graspit URL: %s"%(graspit_url)
+        graspit_frame = rospy.get_param('/graspit_frame', '/world')
+        graspit_socket = graspit_protobuf_socket.GraspitProtobufSocket(graspit_url, 4766)
+        graspit_protobuf_socket_node = GraspitProtobufSocketNode( point_cloud_topic=point_cloud_topic, graspit_socket=graspit_socket, downsample_factor=5, skip_msgs=30, graspit_frame=graspit_frame) 
 
         loop = rospy.Rate(10)
 
