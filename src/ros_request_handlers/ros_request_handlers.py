@@ -58,7 +58,25 @@ class ObjectRecognitionRequestHandler():
         #self.recognize_objects_proxy = rospy.ServiceProxy('recognize_objects', FindObjects)
         rospy.wait_for_service("/get_object_info", timeout=20)
         rospy.wait_for_service("model_manager/refresh_model_list", timeout=20)
-        self.refresh_model_list_service = rospy.ServiceProxy("model_manager/refresh_model_list", Empty)
+        reuse_vision = rospy.get_param("/reuse_vision", 0)
+        if reuse_vision:
+            self.refresh_model_list_service = rospy.ServiceProxy("model_manager/reload_model_list", Empty)
+        else:
+            self.refresh_model_list_service = rospy.ServiceProxy("model_manager/refresh_model_list", Empty)
+        self.get_object_info_service = rospy.ServiceProxy("/get_object_info", graspit_msgs.srv.GetObjectInfo)
+
+    def handle(self):
+        self.refresh_model_list_service()
+        return self.get_object_info_service()
+
+class ObjectRetrievalRequestHandler():
+
+    def __init__(self):
+        #rospy.wait_for_service('recognize_objects', timeout=5)
+        #self.recognize_objects_proxy = rospy.ServiceProxy('recognize_objects', FindObjects)
+        rospy.wait_for_service("/get_object_info", timeout=20)
+        rospy.wait_for_service("model_manager/reload_model_list", timeout=20)
+        self.refresh_model_list_service = rospy.ServiceProxy("model_manager/reload_model_list", Empty)
         self.get_object_info_service = rospy.ServiceProxy("/get_object_info", graspit_msgs.srv.GetObjectInfo)
 
     def handle(self):
