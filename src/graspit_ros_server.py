@@ -7,6 +7,7 @@ from rpcz_services.object_recognition_service import ObjectRecognitionService
 from rpcz_services.camera_origin_service import CameraOriginService
 from rpcz_services.check_grasp_reachability_service import CheckGraspReachabilityService
 from rpcz_services.execute_grasp_service import ExecuteGraspService
+from rpcz_services.get_option_selection import OptionSelectionService
 
 import roslib
 import rospy
@@ -62,6 +63,7 @@ if __name__ == "__main__":
     retrieval_service.isRetrieval = True
 
     services = [ObjectRecognitionService(ros_interface),
+                OptionSelectionService(ros_interface),
                 retrieval_service,
                 CameraOriginService(ros_interface),
                 CheckGraspReachabilityService(ros_interface),
