@@ -39,8 +39,8 @@ class OptionSelectionService(get_option_selection_rpcz.GetOptionSelectionService
             goal.option_ids.append(img_opt.description.id)
 
             goal.imgs.append(msg)
-            # goal.descriptions.append(img_opt.description.description)
-            # goal.costs.append(img_opt.description.cost)
+            goal.descriptions.append(img_opt.description.description)
+            goal.costs.append(img_opt.description.cost)
 
         for c_img_opt in request.compressedImageOptions:
             rospy.logwarn('{}'.format(len(c_img_opt.option.data)))
@@ -57,38 +57,43 @@ class OptionSelectionService(get_option_selection_rpcz.GetOptionSelectionService
             goal.option_ids.append(c_img_opt.description.id)
             goal.compressed_imgs.append(msg)
 
-            # goal.descriptions.append(c_img_opt.description.description)
-            # goal.costs.append(c_img_opt.description.cost)
+            goal.descriptions.append(c_img_opt.description.description)
+            goal.costs.append(c_img_opt.description.cost)
 
         for s_opt in request.stringOptions:
             goal.option_ids.append(s_opt.description.id)
             goal.strs.append(s_opt.option)
 
-            # goal.descriptions.append(s_opt.description.description)
-            # goal.costs.append(s_opt.description.cost)
+            goal.descriptions.append(s_opt.description.description)
+            goal.costs.append(s_opt.description.cost)
 
-        # goal.minimum_confidence_level = request.minimumConfidenceLevel
+        goal.minimum_confidence_level = request.minimumConfidenceLevel
 
         rospy.logwarn('goal sent')
-        self.client.send_goal(goal)
+        if goal.option_ids:
+            self.client.send_goal(goal)
 
-        response = get_option_selection_pb2.GetOptionSelectionResponse()
+            response = get_option_selection_pb2.GetOptionSelectionResponse()
 
-        self.client.wait_for_result(rospy.Duration.from_sec(120.0))
+            self.client.wait_for_result(rospy.Duration.from_sec(120.0))
 
-        result = self.client.get_result()
-        rospy.logwarn('result received {}'.format(result))
+            result = self.client.get_result()
+            rospy.logwarn('result received {}'.format(result))
 
-        if result is not None and result.option_ids:
-            response.selectedOption = result.option_ids[0]
-            response.confidence = result.confidences[0]
-            for c in result.confidences:
-                response.interestLevel.append(c)
-            for oid in result.option_ids:
-                response.option_ids.append(oid)
+            if result is not None and result.option_ids:
+                response.selectedOption = result.option_ids[0]
+                response.confidence = result.confidences[0]
+                for c in result.confidences:
+                    response.interestLevel.append(c)
+                for oid in result.option_ids:
+                    response.option_ids.append(oid)
+            else:
+                response.confidence = -1111
+                rospy.logerr('THERE IS AN ERROR {}'.format(result))
         else:
+            rospy.logwarn('goal is empty')
+            response.selectedOption = -1
             response.confidence = -1111
-            rospy.logerr('THERE IS AN ERROR {}'.format(result))
 
         return response
 

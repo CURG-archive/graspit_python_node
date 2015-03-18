@@ -63,8 +63,8 @@ if __name__ == "__main__":
     retrieval_service.isRetrieval = True
 
     services = [ObjectRecognitionService(ros_interface),
-                OptionSelectionService(ros_interface),
                 retrieval_service,
+                OptionSelectionService(ros_interface),
                 CameraOriginService(ros_interface),
                 CheckGraspReachabilityService(ros_interface),
                 ExecuteGraspService(ros_interface)]
