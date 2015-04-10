@@ -67,7 +67,7 @@ class OptionSelectionService(get_option_selection_rpcz.GetOptionSelectionService
             goal.descriptions.append(s_opt.description.description)
             goal.costs.append(s_opt.description.cost)
 
-        goal.minimum_confidence_level = request.minimumConfidenceLevel
+        #goal.minimum_confidence_level = request.minimumConfidenceLevel
 
         rospy.logwarn('goal sent')
         if goal.option_ids:

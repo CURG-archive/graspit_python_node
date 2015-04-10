@@ -18,8 +18,8 @@ _GETOPTIONSELECTIONSERVICE = descriptor.ServiceDescriptor(
   file=get_option_selection_pb2.DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=912,
-  serialized_end=1029,
+  serialized_start=938,
+  serialized_end=1055,
   methods=[
   descriptor.MethodDescriptor(
     name='run',
