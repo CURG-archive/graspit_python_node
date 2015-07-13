@@ -7,7 +7,7 @@ import rospy
 
 if __name__=="__main__":
     rospy.init_node('graspit_remote')
-    graspit_ssh_url = rospy.get_param('~graspit_ssh_url', 'jweisz@192.168.11.61')
+    graspit_ssh_url = rospy.get_param('~graspit_ssh_url', 'jweisz@192.168.1.2')
     graspit_display = rospy.get_param('~graspit_display',':1.0')
     graspit_world_name = rospy.get_param('~graspit_world','3objectbarrett')
     graspit_remote_bin = rospy.get_param('~graspit_remote_bin', 'graspit')
