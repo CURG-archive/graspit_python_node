@@ -1,3 +1,0 @@
-  <launch>
-        <node name="fake_graspit_ros_server" pkg="graspit_python_node" type="fake_graspit_ros_server.py" />
-  </launch>
